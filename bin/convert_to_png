@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+ARGV.each{|fn|
+  next if fn =~ /\.png\Z/
+  pngfn = fn.sub(/\.([a-z]+)\Z/, ".png")
+  if File.exist?(pngfn)
+    puts "Not converting #{fn} to #{pngfn} because target exists"
+    next
+  end
+  system "convert", fn, pngfn
+}

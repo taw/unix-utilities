@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require "fileutils"
+
+types = {
+  'ruby'       => "#!/usr/bin/env ruby",
+  'ruby1.9'    => "#!/usr/bin/env ruby1.9",
+  'python'     => "#!/usr/bin/env python",
+  'python3.1'  => "#!/usr/bin/env python3.1",
+  'perl'       => "#!/usr/bin/perl",
+  'bash'       => "#!/bin/bash",
+}
+types['rb']  = types['ruby']
+types['9']   = types['rb9'] = types['ruby1.9']
+types['py']  = types['python']
+types['py3'] = types['python3'] = types['python3.1']
+types['pl']  = types['perl']
+types['sh']  = types['bash']
+
+type = 'ruby'
+if ARGV[0] =~ /\A--?(.*)/
+  ARGV.shift
+  type = $1
+end
+
+bin = types[type] or raise "No such type: #{type}"
+
+ARGV.each{|file_name|
+  if File.exist?(file_name)
+    warn "Already exists, chmodding only: #{file_name}"
+    system "chmod", "+x", file_name
+  else
+    File.open(file_name, IO::WRONLY|IO::CREAT|IO::EXCL, 0755){|fh|
+      fh.puts bin
+    }
+  end
+}

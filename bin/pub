@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+class File
+  def self.pub(fn)
+    unless exist?(fn)
+      warn "File #{fn} doesn't exist"
+      return
+    end
+    chmod(executable?(fn) ? 0o755 : 0o644, fn)
+    if directory?(fn)
+      Dir.open(fn) do |dh|
+        dh.each do |sfn|
+          pub(fn + "/" + sfn) unless sfn == "." or sfn == ".."
+        end
+      end
+    end
+  end
+end
+
+ARGV.each{|fn|
+  File.pub(fn)
+}

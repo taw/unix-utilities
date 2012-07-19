@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+buf = STDIN.readlines
+(0...buf.size).each{|i|
+  sw = i+rand(buf.size-i)
+  buf[i], buf[sw] = buf[sw], buf[i]
+}
+puts buf

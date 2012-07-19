@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+
+ARGV.each{|dir|
+  FileUtils.rm "#{dir}/.DS_Store"
+  FileUtils.rmdir dir
+}
