@@ -1,0 +1,84 @@
+#!/usr/bin/env ruby
+require "fileutils"
+
+class String
+  def shell_escape
+    return "''" if empty?
+    return dup unless self =~ /[^0-9A-Za-z+,.\/:=@_-]/
+    gsub(/(')|[^']+/) { $1 ? "\\'" : "'#{$&}'"}
+  end
+end
+
+class Unarchiver
+  Formats = {
+    :rar  => %w[.rar .cbr],
+    :"7z" => %w[.7z .zip .cbz],
+    :tgz  => %w[.tgz .tar.gz],
+    :tbz2  => %w[.tbz2 .tar.bz2],
+  }
+  attr_reader :statuses
+  def initialize
+    @statuses = Hash.new{|ht,k| ht[k] = []}
+  end
+  def formats
+    @formats ||= Formats.map{|fmt, exts| exts.map{|ext| [fmt, ext]}}.flatten(1)
+  end
+  def unarchive_run(fn)
+    bn   = File.basename(fn)
+    formats.each{|fmt, ext|
+      if bn.downcase.reverse[0, ext.size] == ext.reverse
+        dn = bn[0...-ext.size]
+        prefixes = send("files_#{fmt}", fn).map{|f| f.sub(/\/.*/, "")}.uniq.select{|f| f != ""}
+        if prefixes.size == 1 and !File.exist?(prefixes[0])
+          return send("unpack_#{fmt}", fn)
+        else
+          FileUtils.mkdir_p dn
+          return Dir.chdir(dn){ send("unpack_#{fmt}", fn) }
+        end
+      end
+    }
+    return "Not supported"
+  end
+  def unarchive(fn)
+    if fn =~ /part/i
+      return "Looking like multipart, skipping"
+    end
+    fn   = File.expand_path(fn)
+    @statuses[unarchive_run(fn)] << fn
+  end
+
+  def files_rar(fn)
+    `unrar vb #{fn.shell_escape}`.map(&:chomp)
+  end
+  def files_7z(fn)
+    `7za l -slt #{fn.shell_escape}`.scan(/^Path = (.*)/).flatten
+  end
+  def files_tgz(fn)
+    `tar -tzf #{fn.shell_escape}`.map(&:chomp)
+  end
+  def files_tbz2(fn)
+    `tar -tjf #{fn.shell_escape}`.map(&:chomp)
+  end
+
+  def unpack_rar(fn)
+    system "unrar", "x", fn
+  end
+  def unpack_7z(fn)
+    system "7za", "x", fn
+  end
+  def unpack_tgz(fn)
+    system "tar", "-xzf", fn
+  end
+  def unpack_tbz2(fn)
+    system "tar", "-xjf", fn
+  end
+end
+
+ua = Unarchiver.new
+ARGV.each{|fn|
+  ua.unarchive(fn)
+}
+ua.statuses.each{|status,files|
+  puts [status, *files].join(" ")
+  system "trash", *files if status == true
+}

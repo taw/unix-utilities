@@ -1,0 +1,80 @@
+#!/usr/bin/env ruby
+
+require "fileutils"
+require "pathname"
+require "digest"
+
+class DedupFiles
+  attr_reader :files
+  def initialize
+    @files = []
+  end
+  def add(fn)
+    fn = Pathname(fn)
+    if fn.directory?
+      fn.children.each{|cfn|
+        add(cfn)
+      }
+    elsif fn.file?
+      @files << fn
+    end
+  end
+  
+  def rm_dup_of!(file, base)
+    puts "`#{file}' is a duplicate of `#{base}'"
+    FileUtils.rm_f file
+  end
+  
+  def dedup_group!(fns)
+    by_hash = {}
+    fns.each{|fn|
+      d = Digest::SHA1.new.file(fn).hexdigest
+      (by_hash[d] ||= []) << fn
+    }
+    by_hash.each{|h, files|
+      files.sort!
+      keep = files.shift
+      files.each{|fn|
+        rm_dup_of!(fn, keep)
+      }
+    }
+  end
+  
+  def dedup_1!
+    by_sz_and_bn = {}
+    @files.each{|fn|
+      next unless fn.exist?
+      key = [fn.size, fn.basename.to_s]
+      (by_sz_and_bn[key] ||= []) << fn
+    }
+    by_sz_and_bn.values.each{|fns|
+      dedup_group!(fns) if fns.size > 1
+    }   
+  end
+
+  def dedup_2!
+    by_sz = {}
+    @files.each{|fn|
+      next unless fn.exist?
+      (by_sz[fn.size] ||= []) << fn
+    }
+    by_sz.values.each{|fns|
+      dedup_group!(fns) if fns.size > 1
+    }   
+  end
+  
+  def dedup!
+    dedup_1!
+    dedup_2!
+  end
+end
+
+if ARGV.size == 0
+  STDERR.puts "Usage: #{$0} <dir1> <dir2> ..."
+  exit 1
+end
+
+df = DedupFiles.new
+ARGV.each{|fn| df.add(fn) }
+
+df.dedup!

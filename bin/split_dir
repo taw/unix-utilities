@@ -1,0 +1,45 @@
+#!/usr/bin/env ruby
+
+class Array
+  def balanced_slices(max_sz)
+    slice_count = (size+max_sz-1) / max_sz
+    (0...slice_count).map{|i|
+      i0 = i * size / slice_count
+      i1 = (i+1) * size / slice_count
+      self[i0...i1]
+    }    
+  end
+end
+
+require "pathname"
+
+max_size = 200 
+
+ARGV.each{|d|
+  d = Pathname.new(d)
+  next unless d.directory?
+  cn = d.children
+  next if cn.size <= max_size * 1.25 # avoid tiny chunks
+  puts "Splitting #{d} - #{cn.size} files"
+  slices = cn.sort.balanced_slices(max_size)
+  slices.each_with_index{|fs, i|
+    dn = d.sub(/\/?\Z/, "-%0#{slices.size.to_s.size}d" % (i+1))
+    if dn.exist?
+      unless dn.directory? and dn.children.size == 0
+        puts "#{dn} already exists and is not an empty directory, skipping"
+        next
+      end
+    else
+      dn.mkdir
+    end
+    fs.each{|f|
+      nf = dn + f.basename
+      if nf.exist?
+        puts "#{nf} already exists, skipping"
+        next
+      end
+      f.rename(nf)
+    }
+  }
+  d.rmdir
+}

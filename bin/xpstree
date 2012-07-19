@@ -1,0 +1,290 @@
+#!/usr/bin/env ruby
+
+###############
+# Support for older versions of Ruby
+unless [].respond_to?(:group_by)
+  class Array
+    def group_by
+      hsh = {}
+      each do |element|
+        key = yield(element)
+        hsh[key] ||= []
+        hsh[key] << element
+      end
+      hsh
+    end
+  end
+end
+
+unless :x.respond_to?(:to_proc)
+  class Symbol
+    def to_proc
+      proc{|obj, *args| obj.send(self, *args)}
+    end
+  end
+end
+
+###############
+# Core extensions
+class Class
+  def cached(*vars)
+    vars.each{|var|
+      ivar, no_cache = :"@#{var}", :"#{var}_without_cache"
+      alias_method(no_cache, var)
+      define_method(var){
+        instance_variable_set(ivar, send(no_cache)) unless instance_variable_get(ivar)
+        instance_variable_get(ivar)
+      }
+    }
+  end
+end
+
+class Array
+  def map_with_first_last
+    rv = []
+    each_with_index{|item, i|
+      rv << yield(item, i==0, i==size-1)
+    }
+    rv
+  end
+end
+
+class String
+  def with_asides(asides)
+    asides.empty? ? self : "#{self}(#{asides.join(",")})"
+  end
+  def highlight
+    "\033[1;37m\033[44m" + self + "\033[0m"
+  end
+  def width
+    gsub(/\033\[[0-9;]+m/, "").size
+  end
+end
+
+###############
+# Boxes
+class Box
+  attr_reader :key, :lines
+  def initialize(key, lines)
+    @lines = lines
+    @key   = key
+  end
+  def map(&blk)
+    Box.new(key, lines.map(&blk))
+  end
+  def box
+    self
+  end
+  def to_s
+    @lines.map{|x| x+"\n"}.join
+  end
+  def max_line_width
+    lines.map(&:width).max
+  end
+  cached :max_line_width
+  def pad
+    map{|line| line + (" " * (max_line_width-line.width))}
+  end
+  def append(str)
+    pad.map{|line| line + str}
+  end
+  def prepend(*prefixes)
+    map{|line|
+      prefixes.push prefixes.last
+      prefixes.shift + line
+    }
+  end
+  def extended_lines(first_box, last_box)
+    if first_box and last_box
+      prepend("--", "  ")
+    elsif last_box
+      prepend("`-", "  ")
+    elsif first_box
+      prepend("+-", "| ")
+    else
+      prepend("|-", "| ")
+    end
+  end
+  def title_line(title)
+    prepend(title, " " * title.width)
+  end
+  def multiply(n)
+    return self if n == 1
+    pad.map{|line| "[#{line}]"}.title_line("#{n}*")
+  end
+  def self.merge_boxes(objects)
+    objects.map(&:box).group_by(&:lines).map{|lines, boxes|
+      boxes.sort_by(&:key).first.multiply(boxes.size)
+    }.sort_by(&:key)
+  end
+  def self.parent_with_children(key, parent_line, children, below)
+    lines = merge_boxes(children).map_with_first_last{|cb, is_first, is_last|
+      cb.extended_lines(is_first&&!below, is_last).lines
+    }.flatten
+    if lines.empty? or below
+      Box.new(key, [parent_line, *lines]).prepend("", "  ")
+    else
+      Box.new(key, lines).title_line("#{parent_line}-")
+    end
+  end
+end
+
+###############
+# Trees
+module Tree
+  attr_reader :parent
+  def parent=(new_parent)
+    @parent.children.delete(self) if @parent
+    @parent = new_parent
+    new_parent.children << self if new_parent
+  end
+  def children
+    @children ||= []
+  end
+  # Can be used even in operations that modify @children
+  def each_child(&blk)
+    children.dup.each(&blk)
+  end
+  def prune!(&blk)
+    if parent and yield(self)
+      self.parent = nil
+    else
+      each_child{|c| c.prune!(&blk)}
+    end
+  end
+  def skip_self!
+    each_child{|c| c.parent = parent}
+    self.parent = nil
+  end
+  def skip!(&blk)
+    each_child{|c| c.skip!(&blk)}
+    skip_self! if parent and yield(self)
+  end
+  def focus!(&blk)
+    out_of_focus = parent && !yield(self)
+    each_child{|c| c.focus!(&blk)} if out_of_focus or not parent
+    skip_self! if out_of_focus
+  end
+  def highlight!(&blk)
+    each_child{|c| c.highlight!(&blk) }
+  end
+  def each(&blk)
+    yield(self)
+    each_child{|c| c.each(&blk)}
+  end
+end
+
+class TreeCollection
+  include Tree
+  def initialize(nodes)
+    tree = Hash.new(self)
+    nodes.each{|key, pkey, node| tree[key] = node}
+    nodes.each{|key, pkey, node| tree[key].parent = tree[pkey]}
+  end
+  def to_s
+    Box.merge_boxes(children).join
+  end
+end
+
+###############
+# Horrible horrible mess which should die in fire
+
+def Process.command_name(command)
+  return $1 if command =~ %r[\A\[(\S+?)(?:/\d+)?\]\Z]
+  w0, w1, = *command.split(/\s+/).map{|cmd| File.basename(cmd).sub(/:\Z/, "") }
+  return w1 if w0 =~ /\A(perl|ruby|sh|bash)\Z/ and w1 and w1 !~ /\A-/
+  return w0.sub(/\A-/, "")
+end
+
+def Process.list
+  `ps -eo pid,ppid,uid,user,command`.split(/\n/)[1..-1].map{|line|
+    pid, ppid, uid, user, command = *line.chomp.split(' ', 5)
+    [pid.to_i, ppid.to_i, ProcessTree.new(pid.to_i, uid.to_i, user, command)]
+  }
+end
+
+class ProcessTree
+  include Tree
+  attr_reader :pid, :uid, :user, :command, :highlighted
+  attr_accessor :raw_command_lines
+  def initialize(pid, uid, user, command)
+    @pid, @uid, @user, @command = pid, uid, user, command
+    @highlighted = false
+    @raw_command_lines = false
+  end
+  def parent_process
+    parent.is_a?(ProcessTree) ? parent : nil
+  end
+  def set_asides(display_pids)
+    @asides = [
+      display_pids ? pid : nil,
+      parent_process && user != parent_process.user ? user : nil,
+    ].compact
+  end
+  def command_name
+    Process.command_name(command)
+  end
+  def pretty_name
+    pn = (raw_command_lines ? command : command_name).with_asides(@asides)
+    highlighted ? pn.highlight : pn
+  end
+  def box
+    Box.parent_with_children(pid, pretty_name, children, raw_command_lines)
+  end
+  def to_s
+    box.to_s
+  end
+  def inspect
+    ppid = parent_process ? parent_process.pid : nil
+    cpids = children.map(&:pid).join(",")
+    "Process[#{command_name};#{pid};#{user};#{ppid};#{cpids};#{command}]"
+  end
+  def highlight!(&blk)
+    super
+    @highlighted = children.any?(&:highlighted) || yield(self)
+  end
+  # Caching command_name and box may not be such a brilliant idea,
+  # as parent and children can change, and this cache never gets invalidated
+  cached :box, :pretty_name, :command_name
+end
+
+def mkfilter(rule)
+  proc{|x| rule === x.command_name}
+end
+
+display_pids = false
+raw_command_lines = false
+filters = [[:prune!, mkfilter('kthread')]]
+while arg = ARGV.shift
+  case arg
+  when '-u'
+    filters << [:focus!, proc{|x| x.uid == Process.uid }]
+  when '-s'
+    filters << [:highlight!, proc{|x| x.pid == Process.pid}]
+  when '--raw'
+    raw_command_lines = true
+  when '-p'
+    display_pids = true
+  when /\A-([hHxsfXSF])\z/
+    actions = {'h' => :highlight!, 'x' => :prune!, 's' => :skip!, 'f' => :focus!}
+    type = $1
+    pattern = ARGV.shift
+    if type.downcase == type
+      pattern = /\A#{Regexp.quote(pattern)}\z/i
+    else
+      pattern = /#{pattern}/
+    end
+    filters << [actions[type.downcase], mkfilter(pattern)]
+  else
+    warn "Unknown option, ignoring: #{arg}"
+  end
+end
+
+roots = TreeCollection.new(Process.list)
+filters.each{|type,arg| roots.send(type,&arg)}
+roots.each{|n|
+  next unless n.is_a?(ProcessTree)
+  n.raw_command_lines = raw_command_lines 
+  n.set_asides(display_pids)
+}
+puts roots

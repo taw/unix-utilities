@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+require "thread"
+require 'zlib'
+
+def gzip_stream(io_in, io_out, flush_freq)
+  fh = Zlib::GzipWriter.wrap(io_out)
+  lock = Mutex.new
+  Thread.new{
+    while true
+      lock.synchronize{
+        return if fh.closed?
+        fh.flush if fh.pos > 0
+      }
+      sleep flush_freq
+    end
+  }
+  io_in.each{|line|
+    lock.synchronize{
+      fh.print(line)
+    }
+  }
+  fh.close
+end
+
+gzip_stream(STDIN, STDOUT, 5)

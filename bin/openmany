@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+if ARGV.empty?
+  STDIN.each{|line|
+    system "open", line.chomp
+  }
+elsif false # overkill?
+  ARGV.each{|fn|
+    File.open(fn).each{|line|
+      system "open", line.chomp
+    }
+  }
+else
+  ARGV.each{|fn| system "open", fn}
+end

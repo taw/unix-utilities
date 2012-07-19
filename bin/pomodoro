@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+def osa(cmd)
+  system *%W[osascript -e #{cmd}]
+end
+
+def mplayer(path)
+  system *%W[mplayer -really-quiet #{path}]
+end
+
+path = "/Library//Application Support/TextMate/Support/Sounds/Harp.wav"
+
+minutes = ARGV[0] ? ARGV[0].to_i : 25
+
+minutes.times{|i|
+  puts "Minutes to go: #{minutes-i}"
+  sleep 60
+}
+osa("set Volume 10")
+mplayer(path)

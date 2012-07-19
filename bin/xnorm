@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+
+def File.same_file?(a,b)
+  File.stat(a) == File.stat(b)
+end
+
+def File.namenorm(fn)
+  nfn = fn.tr("A-Z '", "a-z_")
+  # Cleanup names of downloaded stuff
+  if nfn =~ /\.(mpg|avi|mp4|srt|mkv|txt)\z/
+    [
+      "bluray_rip_in", "[hindi-eng]", "6ch-dts-ac3", "_by_!!!dip",
+      "-fxm", "-fqm", "-asap", "[ayu]_",
+      ".reloaded", "_dvdrip", ".hdtv", ".xvid",
+      "_repack-asap",
+      "-fqm.[vtv]", ".x264-lol", ".[vtv]",
+      "dvdrip[eng]-fxg", ".dvdrip", "-dipper",
+      "[full.screen.edition]", "[ac3]", "[6ch]", "dvdrip", "-newageripper",
+      ".bluray", ".720p", ".x264", ".3audio", "-hdchina",
+      ".tvrip.divx_sfm_foo", ".tvrip.divx_sfm", ".pdtv.divx_sfm",
+      "_pdtv_divx-sfm", ".dvdrip.xvid", "-reward", "-0tv", "-2hd",
+      "_(hdtv-lol)", "_(hdtv-dimension)", "_(hdtv-xor)", "_(hdtv-proper-xor)",
+      "_(hdtv-notv)", "-momentum",
+      "_xvid-maxspeed", "_www.torentz.3xforum.ro",
+      "-playxd", "-immerse", "-lmao", "-compulsion",
+      "_[sys]", "_[bloodlogic]", "_[moonsong]", "_[w4f]",
+    ].each{|x|
+      nfn.sub!(x, "")
+    }
+    if nfn !~ /_/
+      nfn = nfn.gsub(".", "_").reverse.sub("_", ".").reverse
+    end
+  end
+  return if fn == nfn
+  if !File.exist?(nfn) or File.same_file?(fn,nfn)
+    File.rename(fn, nfn)
+  else
+    warn "Already exists, skipping: #{nfn}"
+  end
+end
+
+files = ARGV
+files = files[1..-1].map{|p| Dir[p]}.flatten if files[0] == '-x'
+files.each{|fn| File.namenorm(fn)}
