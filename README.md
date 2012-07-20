@@ -10,8 +10,11 @@ These are all meant to work on OSX. Most but not all will work on other Unix
 distributions. If you have patches to make them work elsewhere, send them
 via pull request or another convenient method.
 
+Individual utilities
+====================
+
 annotate_sgf
-============
+------------
 
 It uses Gnu Go debug mode to annotate your go game in SGF.
 It will find a lot of tactical mistakes for most games by kyu players.
@@ -25,7 +28,7 @@ Output saved to annotated-<game.sgf> in the same directory as <game.sgf>.
 See: http://t-a-w.blogspot.com/2009/08/get-better-at-go-with-gnugo.html
 
 convert_to_png
-==============
+--------------
 
 Converts various image formats to PNG.
 Mostly useful for mass conversion, for example when you have a directory
@@ -36,7 +39,7 @@ with 100 svg files dir/file-001.svg to dir/file-100.svg:
 will convert them all.
 
 dedup_files
-===========
+-----------
 
 Deletes duplicate files in huge directories by hash, with some optimization
 to avoid unnecessary hashing.
@@ -53,7 +56,7 @@ which will work pretty well even if you have 100GB of My Little Pony wallpapers.
 
 
 diffschemas
-===========
+-----------
 
 Gives diff of mysql schemas.
 
@@ -67,8 +70,8 @@ Then run:
 
 which will strip garbage like autoincrement counters and give you clean diff.
 
- e 
-===
+e
+---
 
 This utility has extremely short name since it's meant to be used as your primary
 way to call text editor.
@@ -94,7 +97,7 @@ same file under different name in two editor window), and won't accidentally ope
 Currently configured to call TextMate of course.
 
 gzip_stream
-===========
+-----------
 
 Pipe through it to gzip log without having infinitely long buffers.
 
@@ -110,7 +113,7 @@ sacrificing tiny amount of compression quality for huge amount of convenience.
 See: http://t-a-w.blogspot.com/2010/07/synchronized-compressed-logging-unix.html
 
 namenorm
-========
+--------
 
 Safely normalizes file names replacing upper case characters and spaces with
 lower case characters and underlines.
@@ -121,7 +124,7 @@ Usage:
 
 
 openmany
-========
+--------
 
 Runs `open` command on multiple files, either as command line arguments,
 or one-per-line in STDIN.
@@ -135,7 +138,7 @@ It uses OSX `open` command. For Linux edit to use whatever was Linux equivalent.
 (I keep forgetting since `alias open=...` is always in my `.bashrc`)
 
 pomodoro
-========
+--------
 
 Count downs 25 minutes (or however many you specify as command line argument),
 printing countdown on command line, and when it's over turning volume to maximum
@@ -152,7 +155,7 @@ Setting volume and playing sound assume OSX commands, but I'm sure you'll be abl
 to figure out Linux equivalents.
 
 pub
-===
+---
 
 Fixes directory tree by making it publicly readable and editable by you.
 
@@ -166,7 +169,7 @@ Usage:
     pub directory/
 
 randswap
-========
+--------
 
 Randomly swaps lines of STDIN.
 
@@ -175,7 +178,7 @@ Usage:
     randswap <urls.txt | head -n 10 >sample.txt
 
 rbexe
-=====
+-----
 
 Creates executable script path with proper `#!` line and permissions.
 
@@ -191,7 +194,7 @@ If file exists, it will only change its permissions without overwriting it,
 so it's safe to use.
 
 rename
-======
+------
 
 Larry Wall's rename script, included in Debian-derived distribution, but not on any other Unix
 I know of - which is literally criminal, since it's one of core Unix utilities.
@@ -201,7 +204,7 @@ do yourself a service and install something more sensible, and in the meantime c
 file to your `~/bin`.
 
 split_dir
-=========
+---------
 
 Splits directories with excessively many files into multiple directories with about
 equal number of about-200 files.
@@ -213,7 +216,7 @@ Usage example:
 Mostly useful for directories containing images.
 
 strip_9gag
-==========
+----------
 
 Removes extremely annoying 9gag watermark they put on files they didn't make.
 
@@ -224,7 +227,7 @@ Usage:
 
 
 tac
-===
+---
 
 Reverses order of lines of whatever is on STDIN, prints to STDOUT.
 
@@ -233,7 +236,7 @@ Usage example:
     tac <pokemon_by_newest.txt >pokemon_by_oldest.txt
 
 terminal_title
-==============
+--------------
 
 Changes title of current terminal window. Extremely useful if you have too many terminal titles.
 
@@ -242,7 +245,7 @@ Usage example:
     terminal_title 'Production server (do not accidentally killall -9)'; ssh production.server.example
 
 unall
-=====
+-----
 
 Universal unarchiver. Possibly the most useful nontrivial utility in this repository (not counting Larry Wall's `rename`).
 
@@ -262,7 +265,7 @@ Usage:
 `unall` assumes you have `7za`, `unrar`, and sane version of `tar` installed.
 
 xmlview
-=======
+-------
 
 Reindents XML and cuts it to 150 column limit for easy viewig.
 
@@ -272,7 +275,7 @@ Usage example:
 
 
 xnorm
-=====
+-----
 
 A version of `namenorm` script which also removes random garbage from file names like ".x264".
 Useful mostly for TV episodes.
@@ -285,7 +288,7 @@ It's included more as an example than as actually useful utilities since garbage
 in file names changes constantly.
 
 xpstree
-=======
+-------
 
 A much superior replacement for `pstree`.
 
@@ -310,7 +313,7 @@ Lower case options -sxfh are exact match (sane insensitive).
 Upper case options -SXFH are regexp match.
 
 xrmdir
-======
+------
 
 Works like `rmdir` for OSX. Since OSX creates garbage files like `.DS_Store` in every single
 directory you ever open with Finder (or just because it can), many empty directories
