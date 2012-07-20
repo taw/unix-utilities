@@ -1,0 +1,28 @@
+#!/usr/bin/ruby
+
+require "pp"
+
+class File
+  def self.write(path, cnt)
+    File.open(path, 'wb'){|fh| fh.write cnt} 
+  end
+end
+
+def read_schema(file_name)
+  scm = File.read(file_name)
+  scm.gsub!(/\bdefault\b/i, "DEFAULT")
+  scm.gsub!(/\bauto_increment\b/i, "AUTO_INCREMENT")
+  scm.gsub!(/\bcharacter set\b/i, "CHARACTER SET")
+  scm.gsub!(/^-- (Dump completed on|Server version|Host:) .*\n/, "")
+  scm.gsub!(/\bAUTO_INCREMENT=\d+/i, "AUTO_INCREMENT=1")
+  scm.gsub!(/ USING BTREE\b/, "")
+  scm.gsub!(/[ \t]+/, " ")
+  scm
+end
+
+schema_one = read_schema(ARGV[0])
+schema_two = read_schema(ARGV[1])
+
+File.write("/tmp/s1", schema_one)
+File.write("/tmp/s2", schema_two)
+system "diff", "/tmp/s1", "/tmp/s2"

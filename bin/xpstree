@@ -272,7 +272,7 @@ while arg = ARGV.shift
     if type.downcase == type
       pattern = /\A#{Regexp.quote(pattern)}\z/i
     else
-      pattern = /#{pattern}/
+      pattern = /#{pattern}/i
     end
     filters << [actions[type.downcase], mkfilter(pattern)]
   else

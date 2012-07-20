@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+require "pathname"
+
+def which(a)
+  (ENV['PATH']||"").split(":").each{|dir|
+    begin
+      f = Pathname(dir)+a
+      10.times{ f = f.readlink if f.symlink? }
+      return f.to_s if (f.executable? and
+                        f.file? and
+                        f.open.read(2) == "#!")
+    rescue
+    end
+  }
+  a
+end
+
+args = ARGV.map{|a|
+  if File.exist?(a) or a =~ %r[(\A-)|/]
+    a
+  else
+    which(a)
+  end
+}
+
+exec 'mate', *args
