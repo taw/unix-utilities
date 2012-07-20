@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+trap("PIPE", "EXIT")
 buf = STDIN.readlines
 (0...buf.size).each{|i|
   sw = i+rand(buf.size-i)
