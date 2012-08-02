@@ -1,11 +1,15 @@
 #!/usr/bin/env ruby
 require "fileutils"
+require "shellwords"
 
-class String
-  def shell_escape
-    return "''" if empty?
-    return dup unless self =~ /[^0-9A-Za-z+,.\/:=@_-]/
-    gsub(/(')|[^']+/) { $1 ? "\\'" : "'#{$&}'"}
+# 1.8.6 compatibility
+unless "".respond_to?("shellescape")
+  class String
+    def shellescape
+      return "''" if empty?
+      return dup unless self =~ /[^0-9A-Za-z+,.\/:=@_-]/
+      gsub(/(')|[^']+/) { $1 ? "\\'" : "'#{$&}'"}
+    end
   end
 end
 
@@ -48,16 +52,16 @@ class Unarchiver
   end
 
   def files_rar(fn)
-    `unrar vb #{fn.shell_escape}`.map(&:chomp)
+    `unrar vb #{fn.shellescape}`.map(&:chomp)
   end
   def files_7z(fn)
-    `7za l -slt #{fn.shell_escape}`.scan(/^Path = (.*)/).flatten
+    `7za l -slt #{fn.shellescape}`.scan(/^Path = (.*)/).flatten
   end
   def files_tgz(fn)
-    `tar -tzf #{fn.shell_escape}`.map(&:chomp)
+    `tar -tzf #{fn.shellescape}`.map(&:chomp)
   end
   def files_tbz2(fn)
-    `tar -tjf #{fn.shell_escape}`.map(&:chomp)
+    `tar -tjf #{fn.shellescape}`.map(&:chomp)
   end
 
   def unpack_rar(fn)
