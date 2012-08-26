@@ -168,6 +168,19 @@ Usage:
     pub file.txt
     pub directory/
 
+
+process_gplus_takeout
+---------------------
+
+Converts a directory of Google+ posts taken from Google takeout to a single HTML file,
+sorted by publication date, keeping only original posts and attachments (links, images etc.),
+without comments and other stuff.
+
+Usage:
+
+    process_gplus_takeout Stream/ output.html
+
+
 randswap
 --------
 
