@@ -103,6 +103,22 @@ same file under different name in two editor window), and won't accidentally ope
 
 Currently configured to call TextMate of course.
 
+fix_permissions
+---------------
+
+Removes executable flag from files which shouldn't have it.
+Useful for archives that went through a Windows system, zip archive,
+or other system not aware of Unix executable flag.
+
+It doesn't turn +x flag, only removes it if a file neither starts with #!,
+nor is an executable according to `file` utility.
+
+Usage:
+
+    fix_permissions ~/Downloads
+    
+If no parameters are passed, it fixes permissions in current directory.
+
 gzip_stream
 -----------
 

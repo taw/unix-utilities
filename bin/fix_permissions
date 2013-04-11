@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require "pathname"
+require "shellwords"
+require "find"
+require "fileutils"
+
+class Pathname
+  def script?
+    read(2) == "#!"
+  end
+
+  def file_type
+    `file -b #{self.to_s.shellescape}`.chomp
+  end
+
+  def should_be_executable?
+    script? or file_type =~ /\b(Mach-O|executable)\b/
+  end
+end
+
+def fix_permissions(path)
+  Pathname(path).find do |fn|
+    next if fn.directory?
+    next if fn.symlink?
+    next unless fn.executable?
+    fn.chmod(0644) unless fn.should_be_executable?
+  end
+end
+
+if ARGV.empty?
+  fix_permissions "."
+else
+  ARGV.each do |path|
+    fix_permissions path
+  end
+end
