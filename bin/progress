@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+STDERR.sync = true
+
+$bytes = true
+$max = nil
+$count = 0
+
+until ARGV.empty?
+  case (arg = ARGV.shift)
+  when '-l'
+    $bytes = false
+  when '-b'
+    $bytes = true
+  when /\A(\d+)([kmg]?)\Z/
+    units = {'k'=>2**10, 'm'=>2**20, 'g'=>2**10, ""=>1}
+    $max = $1.to_i * units[$2]
+  else
+    raise "Unrecognized argument: `#{arg}'"
+  end
+end
+
+$max = STDIN.stat.size if $bytes and STDIN.stat.file? and $max.nil?
+
+Thread.new{
+  last_count = nil
+  while true
+    if $count != last_count
+      if $max
+        STDERR.print "\r#{$count}/#{$max} [#{$count*100/$max}%]"
+      else
+        STDERR.print "\r#{$count}"
+      end
+      last_count = $count
+    end
+    sleep 1
+  end  
+}
+
+begin
+  while data = ($bytes ? STDIN.read(2**12) : STDIN.gets)
+    STDOUT.print(data)
+    $count += $bytes ? data.length : 1
+  end
+  STDERR.print "\n"
+rescue Errno::EPIPE
+end

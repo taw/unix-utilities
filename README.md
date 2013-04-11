@@ -187,6 +187,28 @@ Usage:
 
     process_gplus_takeout Stream/ output.html
 
+progress
+--------
+
+Displays progress for piped file.
+
+Usage examples:
+
+       cat /dev/urandom | progress | gzip  >/dev/null
+       progress -l <file.txt | upload
+
+By default it's in bytes mode. Use -l to specify line mode.
+
+If progress is piped a file and it's in byte mode, it checks its size
+and uses that to display relative progress (like `18628608/104857600 [17%]`).
+
+You can also specify what counts as 100% explicitly:
+
+     progesss 123456
+     progress 128m
+     progress -l 42042
+
+It will happily go over 100% on display.
 
 randswap
 --------
