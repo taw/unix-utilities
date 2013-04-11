@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+
+my $limit = $ARGV[0] || 120;
+
+while(<STDIN>) {
+  chomp;
+  print(substr($_, 0, $limit), "\n");
+}

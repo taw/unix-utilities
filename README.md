@@ -27,6 +27,13 @@ Output saved to annotated-<game.sgf> in the same directory as <game.sgf>.
 
 See: http://t-a-w.blogspot.com/2009/08/get-better-at-go-with-gnugo.html
 
+colcut
+------
+
+Cuts long lines to specific number of characters for easy previewing.
+
+    colcut 80 < file.xml
+
 convert_to_png
 --------------
 
