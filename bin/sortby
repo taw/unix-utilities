@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+code = ARGV[0]
+puts *STDIN.readlines.sort_by{|x| $_=x; eval(code) }

@@ -223,6 +223,15 @@ If your distribution doesn't have it (or worse - has some total crap as `rename`
 do yourself a service and install something more sensible, and in the meantime copy this
 file to your `~/bin`.
 
+sortby
+------
+
+Sort input through arbitrary Ruby expression. A lot more flexible than Unix `sort` utility.
+
+Usage:
+
+    sortby '$_.length' <file.txt
+
 split_dir
 ---------
 
