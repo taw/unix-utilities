@@ -223,6 +223,15 @@ If your distribution doesn't have it (or worse - has some total crap as `rename`
 do yourself a service and install something more sensible, and in the meantime copy this
 file to your `~/bin`.
 
+since_soup
+----------
+
+Link to soup posts starting from the post before one specified.
+
+Usage:
+
+    since_soup http://taw.soup.io/post/307955954/Image
+
 sortby
 ------
 

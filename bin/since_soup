@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+def since(url)
+  url =~ %r[\A(.*?)/post/(\d+)]
+  "#{$1}/since/#{$2}"
+end
+
+if ARGV.empty?
+  puts STDIN.readlines.map(&:chomp).map{|url| since(url) }
+else
+  puts ARGV.map{|url| since(url) }
+end
