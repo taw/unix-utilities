@@ -7,7 +7,7 @@ end
 def File.namenorm(fn)
   nfn = fn.tr("A-Z '", "a-z_")
   # Cleanup names of downloaded stuff
-  if nfn =~ /\.(mpg|avi|mp4|srt|mkv|txt)\z/
+  if nfn =~ /\.(mpg|avi|mp4|srt|mkv|txt|m4v)\z/
     [
       "bluray_rip_in", "[hindi-eng]", "6ch-dts-ac3", "_by_!!!dip",
       "-fxm", "-fqm", "-asap", "[ayu]_",
@@ -24,6 +24,8 @@ def File.namenorm(fn)
       "_xvid-maxspeed", "_www.torentz.3xforum.ro",
       "-playxd", "-immerse", "-lmao", "-compulsion",
       "_[sys]", "_[bloodlogic]", "_[moonsong]", "_[w4f]",
+      "-evolve", "-yestv", "-killers",
+      "[www_savevid_com]", "-playnow",
     ].each{|x|
       nfn.sub!(x, "")
     }
