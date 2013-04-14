@@ -135,6 +135,17 @@ sacrificing tiny amount of compression quality for huge amount of convenience.
 
 See: http://t-a-w.blogspot.com/2010/07/synchronized-compressed-logging-unix.html
 
+lastfm_status
+-------------
+
+Find what your friends have been listening to recently.
+
+Usage example:
+
+    lastfm_status some_user
+
+It requires `magic-xml` gem.
+
 namenorm
 --------
 

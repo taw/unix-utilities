@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+require 'magic_xml'
+require 'time'
+
+class Numeric
+  def time_pp
+    s = self.to_i
+    return "#{self}s" if s < 60
+
+    m = (s / 60).to_i
+    s -= m*60
+    return "#{m}m#{s}s" if m < 60
+
+    h = (m / 60).to_i
+    m -= h*60
+    return "#{h}h #{m}m#{s}s" if h < 24
+
+    d = (h / 24).to_i
+    h -= d*24
+    return "#{d}d #{h}h #{m}m#{s}s"
+  end
+end
+
+users = ARGV
+
+users.each do |user_name|
+  feed = XML.load("http://ws.audioscrobbler.com/1.0/user/#{user_name}/recenttracks.rss")
+  last_song = feed.descendant(:item)
+
+  if last_song
+    print "#{user_name}'s last song was `#{last_song[:@title]}' at #{last_song[:@pubDate]}\n"
+    ago = Time.now - Time.parse(last_song[:@pubDate])
+    print "It was #{ago.time_pp} ago\n"
+  else
+    print "No recent songs by #{user_name}\n"
+  end
+end
