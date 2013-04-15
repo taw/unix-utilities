@@ -1,15 +1,22 @@
 #!/usr/bin/env ruby
 
+if RUBY_PLATFORM =~ /linux/ then
+  open_bin = 'xdg-open'
+elsif RUBY_PLATFORM =~ /darwin/ then
+  open_bin = 'open'
+end
+
+
 if ARGV.empty?
   STDIN.each{|line|
-    system "open", line.chomp
+    system open_bin, line.chomp
   }
 elsif false # overkill?
   ARGV.each{|fn|
     File.open(fn).each{|line|
-      system "open", line.chomp
+      system open_bin, line.chomp
     }
   }
 else
-  ARGV.each{|fn| system "open", fn}
+  ARGV.each{|fn| system open_bin, fn}
 end
