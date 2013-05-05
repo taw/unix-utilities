@@ -1,0 +1,107 @@
+#!/usr/bin/env ruby
+
+require "md5"
+require "pathname"
+require "timeout"
+require "uri"
+require "fileutils"
+
+module URI
+  def self.for_form(base, args={})
+    uri = URI.parse(base)
+    unless args.empty?
+      # uri.query = URI.encode_www_form(args) # 1.9 only
+      uri.query = args.map{|k,v| "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}"}.join("&")
+    end
+    uri
+  end
+end
+
+class Pathname
+  def nonempty_file?
+    exist? and not zero?
+  end
+end
+
+def with_terminal_title(title)
+  STDOUT.sync = true
+  begin
+    print "\e]0;Manual page for #{title}\007"
+    yield
+  ensure
+    print "\e]0;Terminal\007"
+  end
+end
+
+class ManPage
+  attr_reader :cmd
+  def initialize(cmd)
+    @cmd = cmd
+  end
+  def cache_key
+    MD5.hexdigest(cmd.inspect)
+  end
+  def cache_path
+    Pathname("#{MAN_CACHE}/#{cache_key}")
+  end
+  def html_path
+    Pathname("#{MAN_CACHE}/#{cache_key}.html")
+  end
+  def term_title
+    "Manual page for #{cmd*' '}"
+  end
+  def man_path
+    @man_path ||= `man -w #{cmd*' '} 2>/dev/null`.chomp
+  end
+  def ensure_fetched
+    unless cache_path.nonempty_file?
+      if man_path =~ /\.(Z|gz)\z/i
+        system "zcat <'#{man_path}' >'#{cache_path}'"
+      else
+        system "cat <'#{man_path}' >'#{cache_path}'"
+      end
+    end
+    raise "Failed to fetch #{cmd*' '} to #{cache_path}" unless cache_path.nonempty_file?
+  end
+  def ensure_html
+    ensure_fetched
+    system "groff -P -I'#{cache_path}_'  -mandoc '#{cache_path}' -T html >'#{html_path}' 2>/dev/null" unless html_path.nonempty_file?
+    raise "Rendering failed" unless html_path.nonempty_file?
+  end
+  def display_terminal
+    ensure_fetched
+    with_terminal_title(term_title){
+      system "man", cache_path
+    }
+  end
+  def display_browser
+    begin
+      ensure_html
+      system "open", html_path
+    rescue
+      system "open", google_url.to_s
+    end
+  end
+  def google_url
+    URI.for_form("http://www.google.com/search", :q => ["man", *@cmd]*" ")
+  end
+end
+
+MAN_CACHE = ENV["HOME"] + "/.man_cache"
+FileUtils.mkdir_p MAN_CACHE
+
+browser = true
+if ARGV[0] =~ /\A(?:(-T|--term)|(-))\z/
+  if $1
+    browser = false
+  else
+    raise "Unrecognized option: #{ARGV[0]}"
+  end
+  ARGV.shift
+end
+
+if browser
+  ManPage.new(ARGV).display_browser
+else
+  ManPage.new(ARGV).display_terminal
+end

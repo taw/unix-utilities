@@ -374,6 +374,24 @@ Usage:
 
 `unall` assumes you have `7za`, `unrar`, and sane version of `tar` installed.
 
+webman
+------
+
+Open man pages in web browser.
+
+It is meant to be used with:
+
+    alias man=webman
+
+in your `bashrc`.
+
+Usage:
+
+    webman perl
+    webman -T perl # to use terminal instead
+
+If it can't find a man page, it googles for it.
+
 xmlview
 -------
 
