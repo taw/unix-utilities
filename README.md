@@ -103,6 +103,26 @@ same file under different name in two editor window), and won't accidentally ope
 
 Currently configured to call TextMate of course.
 
+flickr_find
+-----------
+
+Find Creative Commons licenced photos on flickr.
+
+Usage example:
+
+    flickr_find cute kittens
+
+flickr_get
+----------
+
+Download best quality version of a photo from flickr and annotate it with proper file name.
+
+Usage example:
+
+    flickr_get http://www.flickr.com/photos/pagedooley/386303100/
+
+which will be saved as `~/Downloads/naughty_cat_by_kevin_dooley_from_flickr_cc-by.jpg`
+
 fix_permissions
 ---------------
 

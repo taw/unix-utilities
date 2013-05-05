@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+uri = "http://www.flickr.com/search/?q=#{ARGV.join '+'}&l=cc&ss=2&ct=0&mt=all&adv=1&s=int"
+system "open", uri
