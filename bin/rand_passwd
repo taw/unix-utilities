@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+# 56.4 bits of entropy
+c = ("a".."z").to_a
+puts (0...12).map{ c[rand(c.size)] }.join

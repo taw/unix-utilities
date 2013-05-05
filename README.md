@@ -171,6 +171,11 @@ Usage:
 It uses OSX `open` command. For Linux edit to use whatever was Linux equivalent.
 (I keep forgetting since `alias open=...` is always in my `.bashrc`)
 
+osx_suspend
+-----------
+
+Quickly lock out your OSX session.
+
 pomodoro
 --------
 
@@ -236,6 +241,24 @@ You can also specify what counts as 100% explicitly:
      progress -l 42042
 
 It will happily go over 100% on display.
+
+rand_passwd
+-----------
+
+Generate random password consisting of 12 random lowercase letters,
+that is 56 bits of entropy.
+
+Including upper case letters, numbers, and symbols wouldn't provide
+any meaningful extra security, but it would be much more pain to type it.
+
+Use this together with password manager in your browser for all low-security
+websites - in case your browser forgets the password you can reset it with
+your email on pretty much all such sites anyway.
+
+Usage:
+
+    rand_passwd
+
 
 randswap
 --------
