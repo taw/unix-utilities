@@ -101,7 +101,14 @@ except `e` is shorter, doesn't force you to think about paths,
 will expand all symlinks in name (avoiding issues like accidentally editing the
 same file under different name in two editor window), and won't accidentally open binaries.
 
-Currently configured to call TextMate of course.
+Editor it will use is `$E_EDITOR`, then `$EDITOR`, then TextMate if neither variable is specified.
+`$E_EDITOR` variable is provided in case you want to set up them as:
+
+
+    export E_EDITOR=mate
+    export EDITOR="mate -w"
+
+since git and other such tools require waiting flag.
 
 flickr_find
 -----------

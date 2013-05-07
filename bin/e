@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require "pathname"
+require "shellwords"
 
 def which(a)
   (ENV['PATH']||"").split(":").each{|dir|
@@ -23,4 +24,8 @@ args = ARGV.map{|a|
   end
 }
 
-exec 'mate', *args
+# Extra variable E_EDITOR in case you want EDITOR to be 'mate -w' or 'subl -w'
+# (for git/svn/etc.) but you don't want -w flag passed to e
+editor = ENV["E_EDITOR"] || ENV["EDITOR"] || "mate"
+cmd = Shellwords.split(editor) + args
+exec(*cmd)
