@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require "md5"
+require "digest"
 require "pathname"
 require "timeout"
 require "uri"
@@ -21,6 +21,9 @@ class Pathname
   def nonempty_file?
     exist? and not zero?
   end
+
+  # Removing Pathname#to_str in 1.9 was dumb, bringing it back
+  alias_method :to_str, :to_s
 end
 
 def with_terminal_title(title)
@@ -39,7 +42,7 @@ class ManPage
     @cmd = cmd
   end
   def cache_key
-    MD5.hexdigest(cmd.inspect)
+    Digest::MD5.hexdigest(cmd.inspect)
   end
   def cache_path
     Pathname("#{MAN_CACHE}/#{cache_key}")
