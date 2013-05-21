@@ -146,6 +146,19 @@ Usage:
     
 If no parameters are passed, it fixes permissions in current directory.
 
+
+git_hash
+--------
+
+Hash contents of current git repository. It is useful when multiple branches
+can have same contents.
+
+Usage example:
+
+    git_hash ~/repository
+    git_hash # will hash current directory
+
+
 gzip_stream
 -----------
 

@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+require "digest/sha1"
+
+def git_hash(dir)
+  Dir.chdir(dir) do
+    tree = []
+    tree << ["submodules", `git submodule`]
+    `git ls`.split(/\n/).each do |path|
+      if File.directory?(path)
+        next 
+      else
+        tree << [path, Digest::SHA1.hexdigest(File.read(path))]
+      end
+    end
+    Digest::SHA1.hexdigest(tree.sort.inspect)
+  end
+end
+
+puts git_hash(ARGV[0] || ".")
