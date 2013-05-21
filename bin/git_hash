@@ -5,7 +5,7 @@ require "digest/sha1"
 def git_hash(dir)
   Dir.chdir(dir) do
     tree = []
-    tree << ["submodules", `git submodule`]
+    tree << ["/submodules", `git submodule`]
     `git ls`.split(/\n/).each do |path|
       if File.directory?(path)
         next 
