@@ -52,16 +52,16 @@ class Unarchiver
   end
 
   def files_rar(fn)
-    `unrar vb #{fn.shellescape}`.map(&:chomp)
+    `unrar vb #{fn.shellescape}`.split("\n")
   end
   def files_7z(fn)
     `7za l -slt #{fn.shellescape}`.scan(/^Path = (.*)/).flatten
   end
   def files_tgz(fn)
-    `tar -tzf #{fn.shellescape}`.map(&:chomp)
+    `tar -tzf #{fn.shellescape}`.split("\n")
   end
   def files_tbz2(fn)
-    `tar -tjf #{fn.shellescape}`.map(&:chomp)
+    `tar -tjf #{fn.shellescape}`.split("\n")
   end
 
   def unpack_rar(fn)
