@@ -6,7 +6,7 @@ def git_hash(dir)
   Dir.chdir(dir) do
     tree = []
     tree << ["/submodules", `git submodule`.split(/\n/).sort]
-    `git ls`.split(/\n/).each do |path|
+    `git ls-files`.split(/\n/).each do |path|
       if File.directory?(path)
         next 
       else
