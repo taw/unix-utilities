@@ -79,10 +79,24 @@ class Unarchiver
 end
 
 ua = Unarchiver.new
+keep = false
+if ARGV[0] == "--keep"
+  ARGV.shift
+  keep = true
+elsif ARGV[0] == "--help"
+  puts "Usage: 
+  #{$0} [--keep] archive1.zip archive2.rar archive3.7z
+
+  Unpacks any number of archives.
+  It will move original to trash if unpacking was successful
+  (unless passed --keep flag)"
+  exit
+end
+
 ARGV.each{|fn|
   ua.unarchive(fn)
 }
 ua.statuses.each{|status,files|
   puts [status, *files].join(" ")
-  system "trash", *files if status == true
+  system "trash", *files if keep == false and status == true
 }
