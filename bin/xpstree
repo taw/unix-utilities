@@ -257,6 +257,23 @@ raw_command_lines = false
 filters = [[:prune!, mkfilter('kthread')]]
 while arg = ARGV.shift
   case arg
+  when "--help"
+    puts "
+Options:
+-u            focus on current process
+-s            highlight current process
+-p            print PIDs
+-h name       highlight processes named name
+-H rx         highlight processes matching /rx/i
+-f name       focus on processed named name
+-F rx         focus on processes matching /rx/i
+-x name       prune processes named name
+-X rx         prune processes matching /rx/i
+-S rx         skip processes matching /rx/
+--raw         print full command line arguments
+--help        print this message
+    "
+    exit
   when '-u'
     filters << [:focus!, proc{|x| x.uid == Process.uid }]
   when '-s'
