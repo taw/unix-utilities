@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+unless ARGV[0]
+  STDERR.puts "Usage: #{$0} <countdown in seconds> [<optional> <command>]"
+  exit 1
+end
+
+def fmt_time(s)
+  minutes = s.to_i/60
+  "%d:%02d" % [minutes, s - minutes*60]
+end
+
+time_target = ARGV.shift.to_i
+time_start = Time.now
+while true
+  time_elapsed = Time.now-time_start
+  print "\r", fmt_time((time_target - time_elapsed).ceil)
+  break if time_elapsed >= time_target
+  sleep 1
+end
+print "\rSTART!\n"
+
+unless ARGV.empty?
+  system *ARGV
+end

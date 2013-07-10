@@ -45,6 +45,14 @@ with 100 svg files dir/file-001.svg to dir/file-100.svg:
 
 will convert them all.
 
+countdown
+---------
+
+Counts down time, then optionally runs a command.
+
+    countdown 60
+    countdown 60 open rickroll.mp3
+
 dedup_files
 -----------
 
@@ -54,7 +62,7 @@ to avoid unnecessary hashing.
 Usage:
 
     dedup_files <dir1> <dir2><...
-      
+
 For example:
 
     dedup_files my_little_pony_wallpapers/
@@ -94,7 +102,7 @@ This is extremely helpful if you have a ton of scripts you edit a lot.
 These two commands achieve similar effect:
 
     mate `which foo`
-    
+
     e foo
 
 except `e` is shorter, doesn't force you to think about paths,
@@ -143,7 +151,7 @@ nor is an executable according to `file` utility.
 Usage:
 
     fix_permissions ~/Downloads
-    
+
 If no parameters are passed, it fixes permissions in current directory.
 
 
@@ -321,7 +329,7 @@ Usage:
     rbexe file.rb
     rbexe --9 file.rb
     rbexe --pl file.pl
-    
+
 If file exists, it will only change its permissions without overwriting it,
 so it's safe to use.
 
