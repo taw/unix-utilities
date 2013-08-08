@@ -15,7 +15,9 @@ class Pathname
   end
 
   def should_be_executable?
-    script? or file_type =~ /\b(Mach-O|executable)\b/
+    return true if script?
+    return true if file_type =~ /\b(Mach-O|executable)\b/ and not file_type =~ /dynamically linked shared library/
+    false
   end
 end
 
