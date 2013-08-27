@@ -343,6 +343,18 @@ If your distribution doesn't have it (or worse - has some total crap as `rename`
 do yourself a service and install something more sensible, and in the meantime copy this
 file to your `~/bin`.
 
+rot13
+-----
+
+ROT13 a file.
+
+Usage (either form works):
+
+    rot13 <file.txt
+    rot13 file.txt
+    cat file.txt | rot13 | rot13 > double_the_security.txt
+
+
 since_soup
 ----------
 

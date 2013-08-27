@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+ARGF.each do |line|
+  puts line.tr("a-zA-Z", "n-za-mN-ZA-M")
+end
