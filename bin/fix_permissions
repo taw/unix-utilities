@@ -11,12 +11,14 @@ class Pathname
   end
 
   def file_type
-    `file -b #{self.to_s.shellescape}`.chomp
+    @file_type ||= `file -b #{self.to_s.shellescape}`.chomp
   end
 
   def should_be_executable?
     return true if script?
     return true if file_type =~ /\b(Mach-O|executable)\b/ and not file_type =~ /dynamically linked shared library/
+    false
+  rescue
     false
   end
 end
