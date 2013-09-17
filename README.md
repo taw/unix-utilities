@@ -224,6 +224,12 @@ osx_suspend
 
 Quickly lock out your OSX session.
 
+
+osx_screensaver
+---------------
+
+Turn on OSX screensaver (will lock out your OSX session depending on your settings)
+
 pomodoro
 --------
 
