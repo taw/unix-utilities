@@ -18,7 +18,8 @@ class Unarchiver
     :rar  => %w[.rar .cbr],
     :"7z" => %w[.7z .zip .cbz],
     :tgz  => %w[.tgz .tar.gz],
-    :tbz2  => %w[.tbz2 .tar.bz2],
+    :tbz2 => %w[.tbz2 .tar.bz2],
+    :tar  => %w[.tar],
   }
   attr_reader :statuses
   def initialize
@@ -28,7 +29,7 @@ class Unarchiver
     @formats ||= Formats.map{|fmt, exts| exts.map{|ext| [fmt, ext]}}.flatten(1)
   end
   def unarchive_run(fn)
-    bn   = File.basename(fn)
+    bn = File.basename(fn)
     formats.each{|fmt, ext|
       if bn.downcase.reverse[0, ext.size] == ext.reverse
         dn = bn[0...-ext.size]
@@ -63,6 +64,9 @@ class Unarchiver
   def files_tbz2(fn)
     `tar -tjf #{fn.shellescape}`.split("\n")
   end
+  def files_tar(fn)
+    `tar -tf #{fn.shellescape}`.split("\n")
+  end
 
   def unpack_rar(fn)
     system "unrar", "x", fn
@@ -76,6 +80,9 @@ class Unarchiver
   def unpack_tbz2(fn)
     system "tar", "-xjf", fn
   end
+  def unpack_tar(fn)
+    system "tar", "-xf", fn
+  end
 end
 
 ua = Unarchiver.new
@@ -84,7 +91,7 @@ if ARGV[0] == "--keep"
   ARGV.shift
   keep = true
 elsif ARGV[0] == "--help"
-  puts "Usage: 
+  puts "Usage:
   #{$0} [--keep] archive1.zip archive2.rar archive3.7z
 
   Unpacks any number of archives.
@@ -97,6 +104,6 @@ ARGV.each{|fn|
   ua.unarchive(fn)
 }
 ua.statuses.each{|status,files|
-  puts [status, *files].join(" ")
+  puts [status ? "OK" : "FAIL", *files].join(" ")
   system "trash", *files if keep == false and status == true
 }
