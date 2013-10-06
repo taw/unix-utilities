@@ -7,14 +7,37 @@ class SpeedUpMp3
   def initialize(factor)
     @factor = factor
   end
-  def speedup_file!(source, target)
+  def sox!(source, target)
     system *%W[sox --show-progress #{source} #{target} tempo -s #{@factor}]
+  end
+  def speedup_file!(source, target)
+    target.dirname.mkpath
+    sox!(source, target)
+    # TODO: reapply id3 tags
+  end
+  def speedup_to_directory!(source, target)
+    if Pathname(source).directory?
+      source.children.each do |child|
+        target_child = target+child.basename
+        if child.directory?
+          speedup_to_directory!(child, target_child)
+        elsif child.extname =~ /\.mp3\z/i
+          speedup_file!(child, target_child)
+        end
+      end
+    else
+      speedup_file!(source, target+source.basename)
+    end
   end
   def run!(args)
     target = args.pop
     sources = args
-    if Pathname(target).directory?
-      puts "Sorry, directory conversion not supproted yet [TODO]"
+    # TODO: Support autocreating target directory if it doesn't exist,
+    #       and better error messages?
+    if target.directory?
+      sources.each do |source|
+        speedup_to_directory!(source, target)
+      end
     elsif sources.size == 1
       speedup_file!(sources[0], target)
     else
@@ -39,4 +62,4 @@ if ARGV.empty?
   exit 1
 end
 
-SpeedUpMp3.new(speed).run!(ARGV)
+SpeedUpMp3.new(speed).run!(ARGV.map{|x| Pathname(x)})
