@@ -379,6 +379,22 @@ Usage:
 
     sortby '$_.length' <file.txt
 
+speedup_mp3
+-----------
+
+Convert MP3 podcasts/audiobooks to faster playback (or slower if you wish).
+Useful if your device (like default music playing apps on most phones) doesn't support playback speed change.
+
+Requires sox.
+
+Usage:
+
+    Usage: #{$0} [-factor] file_in.mp3 file_out.mp3
+           #{$0} [-factor] file1.mp3 file2.mp3 dir
+           #{$0} [-factor] dir_in dir_out
+
+Default factor is 1.4 (40% faster) if not specified.
+
 split_dir
 ---------
 

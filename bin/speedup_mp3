@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+require "pp"
+require "pathname"
+
+class SpeedUpMp3
+  def initialize(factor)
+    @factor = factor
+  end
+  def speedup_file!(source, target)
+    system *%W[sox --show-progress #{source} #{target} tempo -s #{@factor}]
+  end
+  def run!(args)
+    target = args.pop
+    sources = args
+    if Pathname(target).directory?
+      puts "Sorry, directory conversion not supproted yet [TODO]"
+    elsif sources.size == 1
+      speedup_file!(sources[0], target)
+    else
+      STDERR.puts "#{target} must be a directory to speedup multiple source files to it"
+      exit 1
+    end
+  end
+end
+
+speed = 1.4
+
+if ARGV[0] =~ /\A-([\d\.]+)\z/
+  speed = $1.to_f
+  ARGV.shift
+end
+
+if ARGV.empty?
+  STDERR.puts "Usage: #{$0} [-factor] file_in.mp3 file_out.mp3"
+  STDERR.puts "       #{$0} [-factor] file1.mp3 file2.mp3 dir"
+  STDERR.puts "       #{$0} [-factor] dir_in dir_out"
+  STDERR.puts "Default factor is 1.4 (40% faster)"
+  exit 1
+end
+
+SpeedUpMp3.new(speed).run!(ARGV)
