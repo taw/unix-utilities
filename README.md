@@ -385,7 +385,7 @@ speedup_mp3
 Convert MP3 podcasts/audiobooks to faster playback (or slower if you wish).
 Useful if your device (like default music playing apps on most phones) doesn't support playback speed change.
 
-Requires sox.
+Requires sox and id3v2 programs.
 
 Usage:
 
@@ -394,6 +394,7 @@ Usage:
            #{$0} [-factor] dir_in dir_out
 
 Default factor is 1.4 (40% faster) if not specified.
+Important ID3v2 tags (author, title, album etc.) are copied over.
 
 split_dir
 ---------

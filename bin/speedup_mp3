@@ -1,11 +1,26 @@
 #!/usr/bin/env ruby
 
 require "pp"
+require "shellwords"
 require "pathname"
 
 class SpeedUpMp3
   def initialize(factor)
     @factor = factor
+  end
+  def known_tags
+    %W[TPE1 TIT2 TALB TCON TIT3 TRCK TYER COMM]
+  end
+  def read_id3_tags(source)
+    `id3v2 -l #{source.to_s.shellescape}`.scan(/^([a-zA-Z0-9]{4}) \(.*?\): (.*)$/).select{|tag, value|
+      known_tags.include?(tag)
+    }
+  end
+  def copy_id3_tags!(source, target)
+    cmd  = ["id3v2"]
+    cmd += read_id3_tags(source).map{|tag, value| ["--#{tag}", value]}.flatten
+    cmd += [target.to_s]
+    system *cmd
   end
   def sox!(source, target)
     system *%W[sox --show-progress #{source} #{target} tempo -s #{@factor}]
@@ -13,7 +28,7 @@ class SpeedUpMp3
   def speedup_file!(source, target)
     target.dirname.mkpath
     sox!(source, target)
-    # TODO: reapply id3 tags
+    copy_id3_tags!(source, target)
   end
   def speedup_to_directory!(source, target)
     if Pathname(source).directory?
