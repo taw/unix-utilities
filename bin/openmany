@@ -9,12 +9,12 @@ end
 
 if ARGV.empty?
   STDIN.each{|line|
-    system open_bin, line.chomp
+    system open_bin, line.strip
   }
 elsif false # overkill?
   ARGV.each{|fn|
     File.open(fn).each{|line|
-      system open_bin, line.chomp
+      system open_bin, line.strip
     }
   }
 else
