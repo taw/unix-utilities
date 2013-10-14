@@ -457,6 +457,16 @@ Usage:
 
 `unall` assumes you have `7za`, `unrar`, and sane version of `tar` installed.
 
+volume
+------
+
+Gets or sets current volume, on scale of 0 to 100 (on OSX)
+
+Usage:
+
+    volume    # prints current volume
+    volume 42 # sets volume
+
 webman
 ------
 

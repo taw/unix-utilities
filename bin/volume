@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require "shellwords"
+
+def osa(cmd)
+  cmd = %W[osascript -e #{cmd}].map(&:shellescape).join(" ")
+  `#{cmd}`
+end
+
+def get_volume
+  osa("output volume of (get volume settings)")
+end
+
+def set_volume!(volume)
+  osa("set volume output volume #{volume}")
+end
+
+case ARGV.size
+when 0
+  puts get_volume
+when 1
+  set_volume! ARGV[0].to_f
+else
+  STDERR.puts "Usage: #{$0} volume # set new volume (0 to 100)"
+  STDERR.puts "       #{$0}        # print current volume"
+  exit 1
+end

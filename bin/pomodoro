@@ -4,7 +4,6 @@ require "shellwords"
 
 def osa(cmd)
   cmd = %W[osascript -e #{cmd}].map(&:shellescape).join(" ")
-  puts cmd
   `#{cmd}`
 end
 
@@ -13,7 +12,7 @@ def mplayer(path)
 end
 
 def with_volume(volume)
-  old_volume = osa("output volume of (get volume settings)").to_i
+  old_volume = osa("output volume of (get volume settings)").strip
   osa("set volume output volume #{volume}")
 ensure
   osa("set volume output volume #{old_volume}")
@@ -30,4 +29,3 @@ minutes.times{|i|
 with_volume(100) {
   mplayer(path)
 }
-
