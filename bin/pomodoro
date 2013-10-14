@@ -1,11 +1,22 @@
 #!/usr/bin/env ruby
 
+require "shellwords"
+
 def osa(cmd)
-  system *%W[osascript -e #{cmd}]
+  cmd = %W[osascript -e #{cmd}].map(&:shellescape).join(" ")
+  puts cmd
+  `#{cmd}`
 end
 
 def mplayer(path)
   system *%W[mplayer -really-quiet #{path}]
+end
+
+def with_volume(volume)
+  old_volume = osa("output volume of (get volume settings)").to_i
+  osa("set volume output volume #{volume}")
+ensure
+  osa("set volume output volume #{old_volume}")
 end
 
 path = "/Library//Application Support/TextMate/Support/Sounds/Harp.wav"
@@ -16,5 +27,7 @@ minutes.times{|i|
   puts "Minutes to go: #{minutes-i}"
   sleep 60
 }
-osa("set Volume 10")
-mplayer(path)
+with_volume(100) {
+  mplayer(path)
+}
+
