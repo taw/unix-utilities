@@ -14,7 +14,8 @@ if ARGV.empty?
 elsif false # overkill?
   ARGV.each{|fn|
     File.open(fn).each{|line|
-      system open_bin, line.strip
+      line.strip!
+      system open_bin, line if line =~ /\S/
     }
   }
 else
