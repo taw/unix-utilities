@@ -60,7 +60,7 @@ class MediaDirectory
     total = 0
     each_media_file do |file|
       d = file_duration(file)
-      puts "  [#{file} - #{d}]"
+      # puts "  [#{file} - #{d}]"
       total += d
     end
     puts "#{@path}: #{format_time(total)}"
