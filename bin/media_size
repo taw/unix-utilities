@@ -1,0 +1,77 @@
+#!/usr/bin/env ruby
+
+require "pathname"
+require "shellwords"
+
+class Pathname
+  def shellescape
+    to_s.shellescape
+  end
+end
+
+class MediaFile
+  def initialize(path)
+    @path = path
+  end
+  def duration
+    answer = `exiftool -s -Duration #{@path.shellescape}`
+    answer.sub!(" (approx)", "")
+    if answer.empty?
+      # warn "Unknown size of #{@path}"
+      0
+    elsif answer =~ /\A(?:Track)?Duration\s*:\s*(\d+):(\d+):(\d+)\s*\z/
+      $1.to_i * 3600 + $2.to_i * 60 + $3.to_i
+    elsif answer =~ /\A(?:Track)?Duration\s*:\s*(\d+)\.(?:\d+) s\s*\z/
+      $1.to_i
+    elsif answer =~ /\A(?:Track)?Duration\s*:\s*(\d+) s\s*\z/
+      $1.to_i
+    else
+      warn "Parse error: `#{answer}'"
+      0
+    end
+  end
+end
+
+class MediaDirectory
+  def initialize(path)
+    @path = path
+  end
+  def each_media_file
+    Pathname(@path).find do |file|
+      next if file.directory?
+      case File.extname(file)
+      when *%W[.mp4 .avi .flv .mp3 .mpg]
+        yield file
+      when *%W[.sub .txt .jpg .png]
+      else
+        if `file -ib #{file.shellescape}` =~ %r[\A(audio|video)/]
+          yield file
+        end
+      end
+    end
+  end
+  def file_duration(file)
+    MediaFile.new(file).duration
+  end
+  def format_time(s)
+    "%d:%02d:%02d" % [s/3600, s/60%60, s%60]
+  end
+  def print_total!
+    total = 0
+    each_media_file do |file|
+      d = file_duration(file)
+      puts "  [#{file} - #{d}]"
+      total += d
+    end
+    puts "#{@path}: #{format_time(total)}"
+  end
+end
+
+if ARGV.empty?
+  STDERR.puts "Usage: #{$0} <media_dir1> <media_dir2> ..."
+  exit 1
+else
+  ARGV.each do |path|
+    MediaDirectory.new(path).print_total!
+  end
+end

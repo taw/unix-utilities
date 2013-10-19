@@ -194,6 +194,19 @@ Usage example:
 
 It requires `magic-xml` gem.
 
+media_size
+----------
+
+Calculates total size of a media directory
+
+Requires `exiftool` program. EXIF information it uses is not guaranteed to be correct.
+
+Usage:
+
+    media_size some_podcasts/
+    media_size some_music_album/
+    media_size some_movie/
+
 namenorm
 --------
 
