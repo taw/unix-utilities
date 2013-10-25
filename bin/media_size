@@ -14,16 +14,16 @@ class MediaFile
     @path = path
   end
   def duration
-    answer = `exiftool -s -Duration #{@path.shellescape}`
+    answer = `exiftool -s -Duration -PlayDuration #{@path.shellescape}`
     answer.sub!(" (approx)", "")
     if answer.empty?
       # warn "Unknown size of #{@path}"
       0
-    elsif answer =~ /\A(?:Track)?Duration\s*:\s*(\d+):(\d+):(\d+)\s*\z/
+    elsif answer =~ /\A(?:Track|Play)?Duration\s*:\s*(\d+):(\d+):(\d+)\s*\z/
       $1.to_i * 3600 + $2.to_i * 60 + $3.to_i
-    elsif answer =~ /\A(?:Track)?Duration\s*:\s*(\d+)\.(?:\d+) s\s*\z/
+    elsif answer =~ /\A(?:Track|Play)?Duration\s*:\s*(\d+)\.(?:\d+) s\s*\z/
       $1.to_i
-    elsif answer =~ /\A(?:Track)?Duration\s*:\s*(\d+) s\s*\z/
+    elsif answer =~ /\A(?:Track|Play)?Duration\s*:\s*(\d+) s\s*\z/
       $1.to_i
     else
       warn "Parse error: `#{answer}'"
@@ -40,9 +40,9 @@ class MediaDirectory
     Pathname(@path).find do |file|
       next if file.directory?
       case File.extname(file)
-      when *%W[.mp4 .avi .flv .mp3 .mpg]
+      when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf]
         yield file
-      when *%W[.sub .txt .jpg .png]
+      when *%W[.sub .txt .jpg .png .srt]
       else
         if `file -ib #{file.shellescape}` =~ %r[\A(audio|video)/]
           yield file
