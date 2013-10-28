@@ -14,16 +14,12 @@ class MediaFile
     @path = path
   end
   def duration
-    answer = `exiftool -s -Duration -PlayDuration #{@path.shellescape}`
+    answer = `exiftool -n -s -Duration -PlayDuration #{@path.shellescape}`
     answer.sub!(" (approx)", "")
     if answer.empty?
       # warn "Unknown size of #{@path}"
       0
-    elsif answer =~ /\A(?:Track|Play)?Duration\s*:\s*(\d+):(\d+):(\d+)\s*\z/
-      $1.to_i * 3600 + $2.to_i * 60 + $3.to_i
-    elsif answer =~ /\A(?:Track|Play)?Duration\s*:\s*(\d+)\.(?:\d+) s\s*\z/
-      $1.to_i
-    elsif answer =~ /\A(?:Track|Play)?Duration\s*:\s*(\d+) s\s*\z/
+    elsif answer =~ /\A(?:Track|Play)?Duration\s*:\s*(\d+\.?\d*)\s*\z/
       $1.to_i
     else
       warn "Parse error: `#{answer}'"
