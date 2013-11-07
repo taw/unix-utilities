@@ -8,6 +8,7 @@ class DedupFiles
   attr_reader :files
   def initialize
     @files = []
+    @total = 0
   end
   def add(fn)
     fn = Pathname(fn)
@@ -19,12 +20,13 @@ class DedupFiles
       @files << fn
     end
   end
-  
+
   def rm_dup_of!(file, base)
+    @total += file.size
     puts "`#{file}' is a duplicate of `#{base}'"
     FileUtils.rm_f file
   end
-  
+
   def dedup_group!(fns)
     by_hash = {}
     fns.each{|fn|
@@ -38,7 +40,7 @@ class DedupFiles
       }
     }
   end
-  
+
   def dedup_1!
     by_sz_and_bn = {}
     @files.each{|fn|
@@ -48,7 +50,7 @@ class DedupFiles
     }
     by_sz_and_bn.values.each{|fns|
       dedup_group!(fns) if fns.size > 1
-    }   
+    }
   end
 
   def dedup_2!
@@ -59,12 +61,13 @@ class DedupFiles
     }
     by_sz.values.each{|fns|
       dedup_group!(fns) if fns.size > 1
-    }   
+    }
   end
-  
+
   def dedup!
     dedup_1!
     dedup_2!
+    puts "#{@total} bytes in duplicated files" if @total > 0
   end
 end
 
