@@ -32,7 +32,6 @@ class DedupFiles
       (by_hash[d] ||= []) << fn
     }
     by_hash.each{|h, files|
-      files.sort!
       keep = files.shift
       files.each{|fn|
         rm_dup_of!(fn, keep)

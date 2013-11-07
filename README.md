@@ -69,6 +69,7 @@ For example:
 
 which will work pretty well even if you have 100GB of My Little Pony wallpapers.
 
+Files in eariler directories on the list, or with earlier filenames have priority to remain.
 
 diffschemas
 -----------
