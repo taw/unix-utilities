@@ -9,6 +9,10 @@ class Pathname
   end
 end
 
+def format_time(s)
+  "%d:%02d:%02d" % [s/3600, s/60%60, s%60]
+end
+
 class MediaFile
   def initialize(path)
     @path = path
@@ -49,25 +53,29 @@ class MediaDirectory
   def file_duration(file)
     MediaFile.new(file).duration
   end
-  def format_time(s)
-    "%d:%02d:%02d" % [s/3600, s/60%60, s%60]
-  end
   def print_total!
     total = 0
     each_media_file do |file|
-      d = file_duration(file)
-      # puts "  [#{file} - #{d}]"
-      total += d
+      total += file_duration(file)
     end
     puts "#{@path}: #{format_time(total)}"
+    total
   end
 end
 
+print_totals = false
+if ARGV[0] == "-t"
+  ARGV.shift
+  print_totals = true
+end
+
 if ARGV.empty?
-  STDERR.puts "Usage: #{$0} <media_dir1> <media_dir2> ..."
+  STDERR.puts "Usage: #{$0} [-t] <media_dir1> <media_dir2> ..."
   exit 1
 else
+  total = 0
   ARGV.each do |path|
-    MediaDirectory.new(path).print_total!
+    total += MediaDirectory.new(path).print_total!
   end
+  puts "Total: #{format_time(total)}" if print_totals
 end

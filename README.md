@@ -208,6 +208,10 @@ Usage:
     media_size some_music_album/
     media_size some_movie/
 
+`-t` option also prints totals:
+
+    media_size -t some_movie/ another_movie/ third_movie/
+
 namenorm
 --------
 
