@@ -1,8 +1,35 @@
 #!/usr/bin/env ruby
 
 require 'fileutils'
+require "pathname"
+require "trollop"
 
-ARGV.each{|dir|
-  FileUtils.rm "#{dir}/.DS_Store"
-  FileUtils.rmdir dir
-}
+def xrmdir(path)
+  return unless path.directory?
+
+  ds_store = path + ".DS_Store"
+  if ds_store.exist?
+    ds_store.unlink
+    puts "Removing #{ds_store}" if @opts[:verbose]
+  end
+
+  if @opts[:recursive]
+    path.children.each do |child|
+      xrmdir child
+    end
+  end
+
+  if path.children.empty?
+    puts "Removing empty directory #{path}" if @opts[:verbose]
+    path.rmdir
+  end
+end
+
+@opts = Trollop::options do
+  opt :verbose, "Be verbose"
+  opt :recursive, "Remove empty subdirectories first"
+end
+
+ARGV.each do |dir|
+  xrmdir Pathname(dir)
+end

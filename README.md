@@ -560,6 +560,11 @@ are technically non-empty.
 
 `xrmdir` deletes this worthless file, then calls `rmdir` on it.
 
+With `-p` flag it recursively descends into a directory, and removes all empty subdirectories and `.DS_Store` files first.
+
+With `-v` flag it's more verbose at it.
+
 Usage:
 
     xrmdir ~/101/reasons/why/osx/sucks/*
+    xrmdir -v -r ~/just/cleanup/stuff
