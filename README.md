@@ -229,13 +229,16 @@ openmany
 Runs `open` command on multiple files, either as command line arguments,
 or one-per-line in STDIN.
 
+It uses OSX `open` command for OSX, or `xdg-open` on Linux.
+
+You can also pass arguments to open, either by separating arguments from files by `--` or else everything starting from `-` is considered an argument.
+
 Usage:
 
     openmany <urls.txt
     openmany *.pdf
-
-It uses OSX `open` command. For Linux edit to use whatever was Linux equivalent.
-(I keep forgetting since `alias open=...` is always in my `.bashrc`)
+    openmany -g *.pdf
+    openmany -a 'Google Chrome' -- *.pdf
 
 osx_suspend
 -----------
