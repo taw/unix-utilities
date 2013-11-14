@@ -31,7 +31,7 @@ else
 end
 
 if ARGV.empty?
-  STDIN.each do |line|
+  STDIN.each do |path|
     run_open path, open_args
   end
 else
