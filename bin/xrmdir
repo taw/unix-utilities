@@ -5,6 +5,7 @@ require "pathname"
 require "trollop"
 
 def xrmdir(path)
+  return if path.symlink?
   return unless path.directory?
 
   ds_store = path + ".DS_Store"
@@ -21,7 +22,11 @@ def xrmdir(path)
 
   if path.children.empty?
     puts "Removing empty directory #{path}" if @opts[:verbose]
-    path.rmdir
+    begin
+      path.rmdir
+    rescue
+      warn "Can't remove directory #{path}: #{$!}"
+    end
   end
 end
 
