@@ -458,6 +458,17 @@ Usage example:
 
     terminal_title 'Production server (do not accidentally killall -9)'; ssh production.server.example
 
+
+trash_size
+----------
+
+Shows size of your trash/recycle bin.
+
+Usage:
+
+    trash_size
+
+
 unall
 -----
 
