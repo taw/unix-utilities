@@ -1,3 +1,16 @@
 #!/usr/bin/env ruby
 
+def set_tab_background(r,g,b)
+  print "\e]6;1;bg;red;brightness;#{r}\a"
+  print "\e]6;1;bg;green;brightness;#{g}\a"
+  print "\e]6;1;bg;blue;brightness;#{b}\a"
+end
+
+
+if ARGV[0] == "-c" or ARGV[0] == "--color"
+  ARGV.shift
+  color = ARGV.shift.split(",").map(&:to_i)
+  set_tab_background(color[0]||0, color[1]||0, color[2]||0)
+end
+
 print "\e]0;", ARGV.join(" "), "\007"

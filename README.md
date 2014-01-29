@@ -458,6 +458,11 @@ Usage example:
 
     terminal_title 'Production server (do not accidentally killall -9)'; ssh production.server.example
 
+It can also change backgrounds (in iTerm2)
+
+    terminal_title -c 255,0,0 'Red terminal'
+    terminal_title --color 0,0,255 'Blue terminal'
+
 
 trash_size
 ----------
