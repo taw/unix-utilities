@@ -25,7 +25,7 @@ def File.namenorm(fn)
       "-playxd", "-immerse", "-lmao", "-compulsion",
       "_[sys]", "_[bloodlogic]", "_[moonsong]", "_[w4f]",
       "-evolve", "-yestv", "-killers",
-      "[www_savevid_com]", "-playnow",
+      "[www_savevid_com]", "-playnow", "-swolled",
     ].each{|x|
       nfn.sub!(x, "")
     }
