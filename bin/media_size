@@ -2,6 +2,8 @@
 
 require "pathname"
 require "shellwords"
+require "moneta"
+require "digest"
 
 class Pathname
   def shellescape
@@ -14,10 +16,17 @@ def format_time(s)
 end
 
 class MediaFile
+  Cache = Moneta.new(:File, dir: "#{ENV["HOME"]}/.media_size_cache/")
   def initialize(path)
     @path = path
   end
+  def hash
+    @hash ||= Digest::SHA1.hexdigest(File.read(@path))
+  end
   def duration
+    Cache[hash] ||= compute_duration
+  end
+  def compute_duration
     answer = `exiftool -n -s -Duration -PlayDuration #{@path.shellescape}`
     answer.sub!(" (approx)", "")
     if answer.empty?
