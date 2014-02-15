@@ -48,7 +48,7 @@ class MediaDirectory
   def each_media_file
     Pathname(@path).find do |file|
       next if file.directory?
-      case File.extname(file)
+      case File.extname(file).downcase
       when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf]
         yield file
       when *%W[.sub .txt .jpg .png .srt]
