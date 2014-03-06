@@ -24,7 +24,12 @@ class MediaFile
     @hash ||= Digest::SHA1.hexdigest(File.read(@path))
   end
   def duration
-    Cache[hash] ||= compute_duration
+    begin
+      Cache[hash] ||= compute_duration
+    rescue
+      puts "FAIL: #{$!}"
+      0
+    end
   end
   def compute_duration
     answer = `exiftool -n -s -Duration -PlayDuration #{@path.shellescape}`
