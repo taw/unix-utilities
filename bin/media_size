@@ -16,16 +16,16 @@ def format_time(s)
 end
 
 class MediaFile
-  Cache = Moneta.new(:File, dir: "#{ENV["HOME"]}/.media_size_cache/")
+  Cache = Moneta.new(:PStore, file: "#{ENV["HOME"]}/.media_size.cache")
   def initialize(path)
     @path = path
   end
-  def hash
-    @hash ||= Digest::SHA1.hexdigest(File.read(@path))
+  def cache_key
+    @cache_key ||= [File.absolute_path(@path), File.size(@path), File.mtime(@path).to_i]
   end
   def duration
     begin
-      Cache[hash] ||= compute_duration
+      Cache[cache_key] ||= compute_duration
     rescue
       puts "FAIL: #{$!}"
       0
