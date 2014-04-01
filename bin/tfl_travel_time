@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+require "uri"
+require "open-uri"
+require "nokogiri"
+
+def parse_time(time)
+  m = 0
+  t = time.dup
+  t.sub!(/Total time:/, "")
+  m += $1.to_i * 60 if t.sub!(/(\d+)hr/, "")
+  m += $1.to_i if t.sub!(/(\d+)mins/, "")
+  t.gsub!(/\s/, "")
+  raise "Time parse error: #{time.inspect}" unless t.empty?
+  m
+end
+
+def tfl_uri(from, to)
+  "http://tfl.gov.uk/plan-a-journey/results?" +
+  [
+    "From=#{URI.escape(from)}",
+    "To=#{URI.escape(to)}",
+    "Mode=tube",
+    "Mode=bus",
+    "Mode=dlr",
+    "Mode=river-bus",
+    "Mode=tram",
+    "Mode=cable-car",
+    "Mode=overground",
+    "Mode=national-rail",
+    "Mode=coach",
+  ].join("&")
+end
+
+def doc(url)
+  Nokogiri(open(url).read)
+end
+
+def travel_time(from, to)
+  uri = tfl_uri(from, to)
+  doc = Nokogiri(open(uri).read)
+  doc.css(".publictransport-box .journey-time").map(&:text).map{|t| parse_time(t)}.min
+end
+
+from, to = ARGV
+t = travel_time(from, to)
+if t
+  puts t
+else
+  system "open", tfl_uri(from, to)
+end

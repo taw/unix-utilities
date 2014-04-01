@@ -463,6 +463,17 @@ It can also change backgrounds (in iTerm2)
     terminal_title -c 255,0,0 'Red terminal'
     terminal_title --color 0,0,255 'Blue terminal'
 
+tfl_travel_time
+---------------
+
+Check TfL website for travel time between two places in London.
+Does not handle disambiguations so you need to be fully specific (like "Victoria Underground Station" not just "Victoria")
+
+Usage example:
+
+    tfl_travel_time "Victoria Underground Station" "Liverpool Street Underground Station"
+
+If the script doesn't get the answer, it opens the website (where you can disambiguate etc.)
 
 trash_size
 ----------
