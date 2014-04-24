@@ -26,9 +26,9 @@ def File.namenorm(fn)
       "_[sys]", "_[bloodlogic]", "_[moonsong]", "_[w4f]",
       "-evolve", "-yestv", "-killers",
       "[www_savevid_com]", "-playnow", "-swolled",
-    ].each{|x|
+    ].each do |x|
       nfn.sub!(x, "")
-    }
+    end
     if nfn !~ /_/
       nfn = nfn.gsub(".", "_").reverse.sub("_", ".").reverse
     end

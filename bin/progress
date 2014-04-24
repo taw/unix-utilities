@@ -22,7 +22,7 @@ end
 
 $max = STDIN.stat.size if $bytes and STDIN.stat.file? and $max.nil?
 
-Thread.new{
+Thread.new do
   last_count = nil
   while true
     if $count != last_count
@@ -34,8 +34,8 @@ Thread.new{
       last_count = $count
     end
     sleep 1
-  end  
-}
+  end
+end
 
 begin
   while data = ($bytes ? STDIN.read(2**12) : STDIN.gets)

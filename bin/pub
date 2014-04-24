@@ -17,6 +17,6 @@ class File
   end
 end
 
-ARGV.each{|fn|
+ARGV.each do |fn|
   File.pub(fn)
-}
+end

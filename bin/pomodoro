@@ -22,10 +22,10 @@ path = "/Library//Application Support/TextMate/Support/Sounds/Harp.wav"
 
 minutes = ARGV[0] ? ARGV[0].to_i : 25
 
-minutes.times{|i|
+minutes.times do |i|
   puts "Minutes to go: #{minutes-i}"
   sleep 60
-}
-with_volume(100) {
+end
+with_volume(100) do
   mplayer(path)
-}
+end

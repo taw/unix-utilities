@@ -2,8 +2,8 @@
 
 trap("PIPE", "EXIT")
 buf = STDIN.readlines
-(0...buf.size).each{|i|
+(0...buf.size).each do |i|
   sw = i+rand(buf.size-i)
   buf[i], buf[sw] = buf[sw], buf[i]
-}
+end
 puts buf

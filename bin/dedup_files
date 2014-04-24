@@ -13,9 +13,9 @@ class DedupFiles
   def add(fn)
     fn = Pathname(fn)
     if fn.directory?
-      fn.children.each{|cfn|
+      fn.children.each do |cfn|
         add(cfn)
-      }
+      end
     elsif fn.file?
       @files << fn
     end
@@ -29,39 +29,39 @@ class DedupFiles
 
   def dedup_group!(fns)
     by_hash = {}
-    fns.each{|fn|
+    fns.each do |fn|
       d = Digest::SHA1.new.file(fn).hexdigest
       (by_hash[d] ||= []) << fn
-    }
-    by_hash.each{|h, files|
+    end
+    by_hash.each do |h, files|
       keep = files.shift
-      files.each{|fn|
+      files.each do |fn|
         rm_dup_of!(fn, keep)
-      }
-    }
+      end
+    end
   end
 
   def dedup_1!
     by_sz_and_bn = {}
-    @files.each{|fn|
+    @files.each do |fn|
       next unless fn.exist?
       key = [fn.size, fn.basename.to_s]
       (by_sz_and_bn[key] ||= []) << fn
-    }
-    by_sz_and_bn.values.each{|fns|
+    end
+    by_sz_and_bn.values.each do |fns|
       dedup_group!(fns) if fns.size > 1
-    }
+    end
   end
 
   def dedup_2!
     by_sz = {}
-    @files.each{|fn|
+    @files.each do |fn|
       next unless fn.exist?
       (by_sz[fn.size] ||= []) << fn
-    }
-    by_sz.values.each{|fns|
+    end
+    by_sz.values.each do |fns|
       dedup_group!(fns) if fns.size > 1
-    }
+    end
   end
 
   def dedup!

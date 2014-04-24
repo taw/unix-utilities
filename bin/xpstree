@@ -28,23 +28,23 @@ end
 # Core extensions
 class Class
   def cached(*vars)
-    vars.each{|var|
+    vars.each do |var|
       ivar, no_cache = :"@#{var}", :"#{var}_without_cache"
       alias_method(no_cache, var)
-      define_method(var){
+      define_method(var) do
         instance_variable_set(ivar, send(no_cache)) unless instance_variable_get(ivar)
         instance_variable_get(ivar)
-      }
-    }
+      end
+    end
   end
 end
 
 class Array
   def map_with_first_last
     rv = []
-    each_with_index{|item, i|
+    each_with_index do |item, i|
       rv << yield(item, i==0, i==size-1)
-    }
+    end
     rv
   end
 end
@@ -83,16 +83,20 @@ class Box
   end
   cached :max_line_width
   def pad
-    map{|line| line + (" " * (max_line_width-line.width))}
+    map do |line|
+      line + (" " * (max_line_width-line.width))
+    end
   end
   def append(str)
-    pad.map{|line| line + str}
+    pad.map do |line|
+      line + str
+    end
   end
   def prepend(*prefixes)
-    map{|line|
+    map do |line|
       prefixes.push prefixes.last
       prefixes.shift + line
-    }
+    end
   end
   def extended_lines(first_box, last_box)
     if first_box and last_box
@@ -299,9 +303,9 @@ end
 
 roots = TreeCollection.new(Process.list)
 filters.each{|type,arg| roots.send(type,&arg)}
-roots.each{|n|
+roots.each do |n|
   next unless n.is_a?(ProcessTree)
-  n.raw_command_lines = raw_command_lines 
+  n.raw_command_lines = raw_command_lines
   n.set_asides(display_pids)
-}
+end
 puts roots

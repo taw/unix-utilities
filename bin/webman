@@ -73,9 +73,9 @@ class ManPage
   end
   def display_terminal
     ensure_fetched
-    with_terminal_title(term_title){
+    with_terminal_title(term_title) do
       system "man", cache_path
-    }
+    end
   end
   def display_browser
     begin

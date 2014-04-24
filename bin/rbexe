@@ -25,13 +25,13 @@ end
 
 bin = types[type] or raise "No such type: #{type}"
 
-ARGV.each{|file_name|
+ARGV.each do |file_name|
   if File.exist?(file_name)
     warn "Already exists, chmodding only: #{file_name}"
     system "chmod", "+x", file_name
   else
-    File.open(file_name, IO::WRONLY|IO::CREAT|IO::EXCL, 0755){|fh|
+    File.open(file_name, IO::WRONLY|IO::CREAT|IO::EXCL, 0755) do |fh|
       fh.puts bin
-    }
+    end
   end
-}
+end

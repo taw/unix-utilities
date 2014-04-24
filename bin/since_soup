@@ -6,7 +6,7 @@ def since(url)
 end
 
 if ARGV.empty?
-  puts STDIN.readlines.map(&:chomp).map{|url| since(url) }
+  puts STDIN.readlines.map(&:chomp).map{|url| since(url)}
 else
-  puts ARGV.map{|url| since(url) }
+  puts ARGV.map{|url| since(url)}
 end

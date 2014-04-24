@@ -30,7 +30,7 @@ class Unarchiver
   end
   def unarchive_run(fn)
     bn = File.basename(fn)
-    formats.each{|fmt, ext|
+    formats.each do |fmt, ext|
       if bn.downcase.reverse[0, ext.size] == ext.reverse
         dn = bn[0...-ext.size]
         prefixes = send("files_#{fmt}", fn).map{|f| f.sub(/\/.*/, "")}.uniq.select{|f| f != ""}
@@ -41,7 +41,7 @@ class Unarchiver
           return Dir.chdir(dn){ send("unpack_#{fmt}", fn) }
         end
       end
-    }
+    end
     return "Not supported"
   end
   def unarchive(fn)
@@ -100,10 +100,10 @@ elsif ARGV[0] == "--help"
   exit
 end
 
-ARGV.each{|fn|
+ARGV.each do |fn|
   ua.unarchive(fn)
-}
-ua.statuses.each{|status,files|
-  puts [status ? "OK" : "FAIL", *files].join(" ")
-  system "trash", *files if keep == false and status == true
-}
+end
+ua.statuses.each do |status_ok, files|
+  puts [status_ok ? "OK" : "FAIL", *files].join(" ")
+  system "trash", *files if status_ok and not keep
+end

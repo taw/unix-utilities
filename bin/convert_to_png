@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-ARGV.each{|fn|
+ARGV.each do |fn|
   next if fn =~ /\.png\Z/
   pngfn = fn.sub(/\.([a-z]+)\Z/, ".png")
   if File.exist?(pngfn)
@@ -8,4 +8,4 @@ ARGV.each{|fn|
     next
   end
   system "convert", fn, pngfn
-}
+end

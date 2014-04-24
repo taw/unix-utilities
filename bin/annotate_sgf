@@ -1,7 +1,14 @@
 #!/usr/bin/env ruby
 
 level = 15
-ARGV.each{|sgf|
+ARGV.each do |sgf|
   annotated_sgf = File.dirname(sgf) + "/" + "annotated-" + File.basename(sgf)
-  system *['gnugo', '--level', "#{level}", '--output-flags', 'dv', '--replay', 'both', '-l', sgf, '-o', annotated_sgf]
-}
+  system *[
+    'gnugo',
+    '--level', "#{level}",
+    '--output-flags', 'dv',
+    '--replay', 'both',
+    '-l', sgf,
+    '-o', annotated_sgf,
+  ]
+end

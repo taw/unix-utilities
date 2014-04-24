@@ -6,20 +6,20 @@ require 'zlib'
 def gzip_stream(io_in, io_out, flush_freq)
   fh = Zlib::GzipWriter.wrap(io_out)
   lock = Mutex.new
-  Thread.new{
+  Thread.new do
     while true
-      lock.synchronize{
+      lock.synchronize do
         return if fh.closed?
         fh.flush if fh.pos > 0
-      }
+      end
       sleep flush_freq
     end
-  }
-  io_in.each{|line|
-    lock.synchronize{
+  end
+  io_in.each do |line|
+    lock.synchronize do
       fh.print(line)
-    }
-  }
+    end
+  end
   fh.close
 end
 

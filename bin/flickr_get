@@ -39,10 +39,10 @@ def url_from_getsizes(r)
   r["sizes"]["size"].max_by{|x| x["width"].to_i}["source"]
 end
 
-$api_key   = '0309264c0827bdb4ebcbff7c5b4a14a3'
+$api_key = '0309264c0827bdb4ebcbff7c5b4a14a3'
 flickr = FlickrInvocation.new($api_key)
 
-ARGV.each{|arg|
+ARGV.each do |arg|
   if arg =~ %r[\Ahttp://farm\d+.static.flickr.com/\d+/(\d+)_.*\.jpg\Z]
     photo_id = $1
   elsif arg =~ /(\d*)\D*\Z/
@@ -53,11 +53,11 @@ ARGV.each{|arg|
 
   r1 = flickr.call("flickr.photos.getInfo", :photo_id => photo_id)
   r2 = flickr.call("flickr.photos.getSizes", :photo_id => photo_id)
-  
+
   comment  = comment_from_getinfo(r1)
   filename = filename_from_getinfo(r1)
   url      = url_from_getsizes(r2)
-  
+
   if url
     if File.exists?(filename)
       puts comment
@@ -72,4 +72,4 @@ ARGV.each{|arg|
     puts comment
     puts "Failed to get #{filename}"
   end
-}
+end

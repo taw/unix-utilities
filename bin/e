@@ -3,7 +3,7 @@ require "pathname"
 require "shellwords"
 
 def which(a)
-  (ENV['PATH']||"").split(":").each{|dir|
+  (ENV['PATH']||"").split(":").each do |dir|
     begin
       f = Pathname(dir)+a
       10.times{ f = f.readlink if f.symlink? }
@@ -12,17 +12,17 @@ def which(a)
                         f.open.read(2) == "#!")
     rescue
     end
-  }
+  end
   a
 end
 
-args = ARGV.map{|a|
+args = ARGV.map do |a|
   if File.exist?(a) or a =~ %r[(\A-)|/]
     a
   else
     which(a)
   end
-}
+end
 
 # Extra variable E_EDITOR in case you want EDITOR to be 'mate -w' or 'subl -w'
 # (for git/svn/etc.) but you don't want -w flag passed to e

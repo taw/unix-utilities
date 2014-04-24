@@ -45,28 +45,28 @@ end
 def process_gplus_takeout!(stream_dir, output_html)
   docs = []
   style = nil
-  Pathname(stream_dir).children.each{|file|
+  Pathname(stream_dir).children.each do |file|
     puts file
     doc = GooglePlusDocument.new(file)
     doc.parse!
     style ||= doc.style
     doc.remove_doc!
     docs << doc
-  }
-  File.open(output_html, 'wb'){|fh|
+  end
+  File.open(output_html, 'wb') do |fh|
     fh.puts "<html>"
     fh.puts "<head>"
     fh.puts '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />'
     fh.puts style
     fh.puts "</head>"
     fh.puts "<body>"
-    docs.sort_by(&:published).reverse.each{|doc|
+    docs.sort_by(&:published).reverse.each do |doc|
       fh.puts "<h3><a href='#{doc.permalink}'>#{doc.published_pretty}</a></h3>"
       fh.puts doc.content
       doc.attachments.each{|at|
         fh.puts at
-      }
-    }
+      end
+    end
     fh.puts "</body>"
     fh.puts "</html>"
   }
