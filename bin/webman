@@ -5,6 +5,7 @@ require "pathname"
 require "timeout"
 require "uri"
 require "fileutils"
+require "shellwords"
 
 module URI
   def self.for_form(base, args={})
@@ -24,6 +25,9 @@ class Pathname
 
   # Removing Pathname#to_str in 1.9 was dumb, bringing it back
   alias_method :to_str, :to_s
+  def shellescape
+    to_s.shellescape
+  end
 end
 
 def with_terminal_title(title)
@@ -59,16 +63,16 @@ class ManPage
   def ensure_fetched
     unless cache_path.nonempty_file?
       if man_path =~ /\.(Z|gz)\z/i
-        system "zcat <'#{man_path}' >'#{cache_path}'"
+        system "zcat <#{man_path.shellescape} >#{cache_path.shellescape}"
       else
-        system "cat <'#{man_path}' >'#{cache_path}'"
+        system "cat <#{man_path.shellescape} >#{cache_path.shellescape}"
       end
     end
     raise "Failed to fetch #{cmd*' '} to #{cache_path}" unless cache_path.nonempty_file?
   end
   def ensure_html
     ensure_fetched
-    system "groff -P -I'#{cache_path}_'  -mandoc '#{cache_path}' -T html >'#{html_path}' 2>/dev/null" unless html_path.nonempty_file?
+    system "groff -P -I#{cache_path.shellescape}_  -mandoc #{cache_path.shellescape} -T html >#{html_path.shellescape} 2>/dev/null" unless html_path.nonempty_file?
     raise "Rendering failed" unless html_path.nonempty_file?
   end
   def display_terminal

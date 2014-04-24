@@ -2,17 +2,6 @@
 require "fileutils"
 require "shellwords"
 
-# 1.8.6 compatibility
-unless "".respond_to?("shellescape")
-  class String
-    def shellescape
-      return "''" if empty?
-      return dup unless self =~ /[^0-9A-Za-z+,.\/:=@_-]/
-      gsub(/(')|[^']+/) { $1 ? "\\'" : "'#{$&}'"}
-    end
-  end
-end
-
 class Unarchiver
   Formats = {
     :rar  => %w[.rar .cbr],

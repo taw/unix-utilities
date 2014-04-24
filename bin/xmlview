@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 
+require "shellwords"
+
 if ARGV.empty?
   exec "xmlindent -i 1 | colcut 150 | less"
 else
-  exec "xmlindent -i 1 < #{ARGV[0]} | colcut 150 | less"
+  exec "xmlindent -i 1 < #{ARGV[0].shellescape} | colcut 150 | less"
 end
