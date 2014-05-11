@@ -11,14 +11,23 @@ class Pathname
   end
 end
 
-def format_time(s)
-  "%d:%02d:%02d" % [s/3600, s/60%60, s%60]
-end
-
 class MediaFile
   Cache = Moneta.new(:PStore, file: "#{ENV["HOME"]}/.media_size.cache")
   def initialize(path)
     @path = path
+  end
+  def extension
+    @path.extname.downcase
+  end
+  def media_file?
+    case extension
+    when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf]
+      true
+    when *%W[.sub .txt .jpg .png .srt .nfo .pdf .m3u], ""
+      false
+    else
+      `file -ib #{@path.shellescape}` =~ %r[\A(audio|video)/]
+    end
   end
   def cache_key
     @cache_key ||= [File.absolute_path(@path), File.size(@path), File.mtime(@path).to_i]
@@ -47,36 +56,26 @@ class MediaFile
 end
 
 class MediaDirectory
+  attr_reader :path
   def initialize(path)
     @path = path
   end
-  def each_media_file
-    @path.find do |file|
-      next if file.directory?
-      case File.extname(file).downcase
-      when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf]
-        yield file
-      when *%W[.sub .txt .jpg .png .srt .nfo .pdf .m3u], ""
-        # skip
-      else
-        if `file -ib #{file.shellescape}` =~ %r[\A(audio|video)/]
-          yield file
-        end
+  def media_files
+    unless @media_files
+      @media_files = []
+      @path.find do |file|
+        next if file.directory?
+        file = MediaFile.new(file)
+        @media_files << file if file.media_file?
       end
     end
+    @media_files
   end
-  def file_duration(file)
-    MediaFile.new(file).duration
+  def duration
+    @duration ||= media_files.map(&:duration).inject(0, &:+)
   end
-  def print_total!
-    total = 0
-    each_media_file do |file|
-      total += file_duration(file)
-    end
-    if @path.directory? or total > 0
-      puts "#{@path}: #{format_time(total)}"
-    end
-    total
+  def directory?
+    @path.directory?
   end
 end
 
@@ -87,13 +86,19 @@ class MediaSizeReporter
     }
     @print_totals = print_totals
   end
-
+  def duration
+    @dirs.map(&:duration).inject(0, &:+)
+  end
+  def format_time(s)
+    "%d:%02d:%02d" % [s/3600, s/60%60, s%60]
+  end
   def report!
-    total = 0
     @dirs.each do |dir|
-      total += dir.print_total!
+      if dir.directory? or dir.duration > 0
+        puts "#{dir.path}: #{format_time(dir.duration)}"
+      end
     end
-    puts "Total: #{format_time(total)}" if @print_totals
+    puts "Total: #{format_time(duration)}" if @print_totals
   end
 end
 
