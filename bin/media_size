@@ -51,12 +51,13 @@ class MediaDirectory
     @path = path
   end
   def each_media_file
-    Pathname(@path).find do |file|
+    @path.find do |file|
       next if file.directory?
       case File.extname(file).downcase
       when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf]
         yield file
       when *%W[.sub .txt .jpg .png .srt]
+        # skip
       else
         if `file -ib #{file.shellescape}` =~ %r[\A(audio|video)/]
           yield file
@@ -72,8 +73,27 @@ class MediaDirectory
     each_media_file do |file|
       total += file_duration(file)
     end
-    puts "#{@path}: #{format_time(total)}"
+    if @path.directory? or total > 0
+      puts "#{@path}: #{format_time(total)}"
+    end
     total
+  end
+end
+
+class MediaSizeReporter
+  def initialize(paths, print_totals)
+    @dirs = paths.map{|x|
+      MediaDirectory.new(Pathname(x))
+    }
+    @print_totals = print_totals
+  end
+
+  def report!
+    total = 0
+    @dirs.each do |dir|
+      total += dir.print_total!
+    end
+    puts "Total: #{format_time(total)}" if @print_totals
   end
 end
 
@@ -87,9 +107,5 @@ if ARGV.empty?
   STDERR.puts "Usage: #{$0} [-t] <media_dir1> <media_dir2> ..."
   exit 1
 else
-  total = 0
-  ARGV.each do |path|
-    total += MediaDirectory.new(path).print_total!
-  end
-  puts "Total: #{format_time(total)}" if print_totals
+  MediaSizeReporter.new(ARGV, print_totals).report!
 end
