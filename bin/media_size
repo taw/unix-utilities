@@ -56,7 +56,7 @@ class MediaDirectory
       case File.extname(file).downcase
       when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf]
         yield file
-      when *%W[.sub .txt .jpg .png .srt]
+      when *%W[.sub .txt .jpg .png .srt .nfo .pdf .m3u], ""
         # skip
       else
         if `file -ib #{file.shellescape}` =~ %r[\A(audio|video)/]
