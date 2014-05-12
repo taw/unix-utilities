@@ -4,6 +4,7 @@ require "pathname"
 require "shellwords"
 require "moneta"
 require "digest"
+require "trollop"
 
 class Pathname
   def shellescape
@@ -88,15 +89,13 @@ class MediaSizeReporter
   end
 end
 
-print_totals = false
-if ARGV[0] == "-t"
-  ARGV.shift
-  print_totals = true
+opts = Trollop::options do
+  opt :totals, "Print totals"
 end
 
 if ARGV.empty?
   STDERR.puts "Usage: #{$0} [-t] <media_dir1> <media_dir2> ..."
   exit 1
 else
-  MediaSizeReporter.new(ARGV, print_totals).report!
+  MediaSizeReporter.new(ARGV, opts[:totals]).report!
 end
