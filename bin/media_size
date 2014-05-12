@@ -11,16 +11,10 @@ class Pathname
   end
 end
 
-class MediaFile
+class MediaFile < Pathname
   Cache = Moneta.new(:PStore, file: "#{ENV["HOME"]}/.media_size.cache")
-  def initialize(path)
-    @path = path
-  end
-  def extension
-    @path.extname.downcase
-  end
   def media_file?
-    case extension
+    case extname.downcase
     when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf]
       true
     when *%W[.sub .txt .jpg .png .srt .nfo .pdf .m3u], ""
@@ -30,19 +24,18 @@ class MediaFile
     end
   end
   def cache_key
-    @cache_key ||= [File.absolute_path(@path), File.size(@path), File.mtime(@path).to_i]
+    @cache_key ||= [expand_path.to_s, size, mtime.to_i]
   end
   def duration
     begin
       Cache[cache_key] ||= compute_duration
     rescue
-      puts "FAIL: #{$!}"
+      warn "FAIL: #{$!}"
       0
     end
   end
   def compute_duration
-    answer = `exiftool -n -s -Duration -PlayDuration #{@path.shellescape}`
-    answer.sub!(" (approx)", "")
+    answer = `exiftool -n -s -Duration -PlayDuration #{shellescape}`.sub(" (approx)", "")
     if answer.empty?
       # warn "Unknown size of #{@path}"
       0
@@ -55,15 +48,11 @@ class MediaFile
   end
 end
 
-class MediaDirectory
-  attr_reader :path
-  def initialize(path)
-    @path = path
-  end
+class MediaDirectory < Pathname
   def media_files
     unless @media_files
       @media_files = []
-      @path.find do |file|
+      find do |file|
         next if file.directory?
         file = MediaFile.new(file)
         @media_files << file if file.media_file?
@@ -74,15 +63,12 @@ class MediaDirectory
   def duration
     @duration ||= media_files.map(&:duration).inject(0, &:+)
   end
-  def directory?
-    @path.directory?
-  end
 end
 
 class MediaSizeReporter
   def initialize(paths, print_totals)
     @dirs = paths.map{|x|
-      MediaDirectory.new(Pathname(x))
+      MediaDirectory.new(x)
     }
     @print_totals = print_totals
   end
@@ -95,7 +81,7 @@ class MediaSizeReporter
   def report!
     @dirs.each do |dir|
       if dir.directory? or dir.duration > 0
-        puts "#{dir.path}: #{format_time(dir.duration)}"
+        puts "#{dir}: #{format_time(dir.duration)}"
       end
     end
     puts "Total: #{format_time(duration)}" if @print_totals
