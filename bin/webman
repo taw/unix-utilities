@@ -62,6 +62,7 @@ class ManPage
   end
   def ensure_fetched
     unless cache_path.nonempty_file?
+      raise "File doesn't exist" unless File.exist?(man_path)
       if man_path =~ /\.(Z|gz)\z/i
         system "zcat <#{man_path.shellescape} >#{cache_path.shellescape}"
       else
