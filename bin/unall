@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
+
 require "fileutils"
 require "shellwords"
+require "trollop"
 
 class Unarchiver
   Formats = {
@@ -10,9 +12,11 @@ class Unarchiver
     :tbz2 => %w[.tbz2 .tar.bz2],
     :tar  => %w[.tar],
   }
+  attr_accessor :force_separate_dir
   attr_reader :statuses
   def initialize
     @statuses = Hash.new{|ht,k| ht[k] = []}
+    @force_separate_dir = false
   end
   def formats
     @formats ||= Formats.map{|fmt, exts| exts.map{|ext| [fmt, ext]}}.flatten(1)
@@ -23,7 +27,7 @@ class Unarchiver
       if bn.downcase.reverse[0, ext.size] == ext.reverse
         dn = bn[0...-ext.size]
         prefixes = send("files_#{fmt}", fn).map{|f| f.sub(/\/.*/, "")}.uniq.select{|f| f != ""}
-        if prefixes.size == 1 and !File.exist?(prefixes[0])
+        if prefixes.size == 1 and !File.exist?(prefixes[0]) and !force_separate_dir
           return send("unpack_#{fmt}", fn)
         else
           FileUtils.mkdir_p dn
@@ -74,25 +78,23 @@ class Unarchiver
   end
 end
 
-ua = Unarchiver.new
-keep = false
-if ARGV[0] == "--keep"
-  ARGV.shift
-  keep = true
-elsif ARGV[0] == "--help"
-  puts "Usage:
-  #{$0} [--keep] archive1.zip archive2.rar archive3.7z
-
-  Unpacks any number of archives.
-  It will move original to trash if unpacking was successful
-  (unless passed --keep flag)"
-  exit
+opts = Trollop::options do
+  opt :keep, "Keep original archive even if unpacking was successful"
+  opt :dir, "Force unpacking into new directory even when all files are in one directory already"
 end
+
+if ARGV.empty?
+  STDERR.puts "Usage:\n  #{$0} [--keep] [--dir] archive1.zip archive2.rar archive3.7z"
+  exit 1
+end
+
+ua = Unarchiver.new
+ua.force_separate_dir = opts[:dir]
 
 ARGV.each do |fn|
   ua.unarchive(fn)
 end
 ua.statuses.each do |status_ok, files|
   puts [status_ok ? "OK" : "FAIL", *files].join(" ")
-  system "trash", *files if status_ok and not keep
+  system "trash", *files if status_ok and not opts[:keep]
 end
