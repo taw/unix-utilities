@@ -1,75 +1,113 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'objectiveflickr'
+require "fileutils"
+require "rubygems"
+require "objectiveflickr"
+require "trollop"
 
-$licenses = {
-   '0' => 'non-free',
-   '1' => 'cc-nc-sa',
-   '2' => 'cc-nc',
-   '3' => 'cc-nc-nd',
-   '4' => 'cc-by',
-   '5' => 'cc-sa',
-   '6' => 'cc-nd',
-}
+class FlickrGetter
+  attr_reader :root_dir
 
-def comment_from_getinfo(r)
-  title      = r["photo"]["title"]["_content"]
-  author     = r["photo"]["owner"]["username"]
-  license    = $licenses[r["photo"]["license"]]
-  "#{title} by #{author} from flickr (#{license.upcase})"
-end
-
-def filename_from_getinfo(r)
-  title_fn   = r["photo"]["title"]["_content"].downcase.gsub(/ /,"_").gsub(/[^a-z0-9_]/,"")
-  author_fn  = r["photo"]["owner"]["username"].downcase.gsub(/ /,"_").gsub(/[^a-z0-9_]/,"")
-  license    = $licenses[r["photo"]["license"]]
-  format     = r["photo"]["originalformat"] || "jpg"
-  "#{ENV['HOME']}/Downloads/#{title_fn}_by_#{author_fn}_from_flickr_#{license}.#{format}"
-end
-
-def url_from_getinfo(r)
-  server_id = r["photo"]["server"]
-  secret    = r["photo"]["originalsecret"]
-  farm      = r["photo"]["farm"]
-  "http://farm#{farm}.static.flickr.com/#{server_id}/#{photo_id}_#{secret}_o.#{format}"
-end
-
-def url_from_getsizes(r)
-  r["sizes"]["size"].max_by{|x| x["width"].to_i}["source"]
-end
-
-$api_key = '0309264c0827bdb4ebcbff7c5b4a14a3'
-flickr = FlickrInvocation.new($api_key)
-
-ARGV.each do |arg|
-  if arg =~ %r[\Ahttp://farm\d+.static.flickr.com/\d+/(\d+)_.*\.jpg\Z]
-    photo_id = $1
-  elsif arg =~ /(\d*)\D*\Z/
-    photo_id = $1
-  else
-    raise "Parse error: #{arg}"
+  def initialize(root_dir)
+    @root_dir = root_dir
   end
 
-  r1 = flickr.call("flickr.photos.getInfo", :photo_id => photo_id)
-  r2 = flickr.call("flickr.photos.getSizes", :photo_id => photo_id)
+  def flickr
+    @flickr ||= FlickrInvocation.new(api_key)
+  end
 
-  comment  = comment_from_getinfo(r1)
-  filename = filename_from_getinfo(r1)
-  url      = url_from_getsizes(r2)
+  def api_key
+    '0309264c0827bdb4ebcbff7c5b4a14a3'
+  end
 
-  if url
-    if File.exists?(filename)
-      puts comment
-      puts "Already exists: #{filename}"
+  def extract_photo_id(arg)
+    if arg =~ %r[\Ahttp://farm\d+.static.flickr.com/\d+/(\d+)_.*\.jpg\Z]
+      photo_id = $1
+    elsif arg =~ /(\d*)\D*\Z/
+      photo_id = $1
     else
-      system "wget", "-nv", url, "-O", filename # add -nv if you don't like the flood
-      puts url
-      puts comment
-      puts filename
+      raise "Parse error: #{arg}"
     end
-  else
-    puts comment
-    puts "Failed to get #{filename}"
+  end
+
+  def licenses
+    {
+      '0' => 'non-free',
+      '1' => 'cc-nc-sa',
+      '2' => 'cc-nc',
+      '3' => 'cc-nc-nd',
+      '4' => 'cc-by',
+      '5' => 'cc-sa',
+      '6' => 'cc-nd',
+    }
+  end
+
+  def comment_from_getinfo(r)
+    title      = r["photo"]["title"]["_content"]
+    author     = r["photo"]["owner"]["username"]
+    license    = licenses[r["photo"]["license"]]
+    "#{title} by #{author} from flickr (#{license.upcase})"
+  end
+
+  def filename_from_getinfo(r)
+    title_fn   = r["photo"]["title"]["_content"].downcase.gsub(/ /,"_").gsub(/[^a-z0-9_]/,"")
+    author_fn  = r["photo"]["owner"]["username"].downcase.gsub(/ /,"_").gsub(/[^a-z0-9_]/,"")
+    license    = licenses[r["photo"]["license"]]
+    format     = r["photo"]["originalformat"] || "jpg"
+    "#{root_dir}/#{title_fn}_by_#{author_fn}_from_flickr_#{license}.#{format}"
+  end
+
+  def url_from_getinfo(r)
+    server_id = r["photo"]["server"]
+    secret    = r["photo"]["originalsecret"]
+    farm      = r["photo"]["farm"]
+    "http://farm#{farm}.static.flickr.com/#{server_id}/#{photo_id}_#{secret}_o.#{format}"
+  end
+
+  def url_from_getsizes(r)
+    r["sizes"]["size"].max_by{|x| x["width"].to_i}["source"]
+  end
+
+  def get!(arg)
+    photo_id = extract_photo_id(arg)
+    r1 = flickr.call("flickr.photos.getInfo", :photo_id => photo_id)
+    r2 = flickr.call("flickr.photos.getSizes", :photo_id => photo_id)
+
+    comment  = comment_from_getinfo(r1)
+    filename = filename_from_getinfo(r1)
+    url      = url_from_getsizes(r2)
+
+    if url
+      if File.exists?(filename)
+        puts comment
+        puts "Already exists: #{filename}"
+      else
+        FileUtils.mkdir_p File.dirname(filename)
+        system "wget", "-nv", url, "-O", filename
+        puts url
+        puts comment
+        puts filename
+      end
+    else
+      puts comment
+      puts "Failed to get #{filename}"
+    end
+  end
+end
+
+
+opts = Trollop::options do
+  opt :out, "Directory to save files to", :default => "#{ENV['HOME']}/Downloads"
+end
+
+fg = FlickrGetter.new(opts[:out])
+
+if ARGV.empty?
+  STDIN.readlines.map(&:strip).each do |arg|
+    fg.get! arg
+  end
+else
+  ARGV.each do |arg|
+    fg.get! arg
   end
 end
