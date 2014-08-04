@@ -7,7 +7,7 @@ require "trollop"
 class Unarchiver
   Formats = {
     :rar  => %w[.rar .cbr],
-    :"7z" => %w[.7z .zip .cbz],
+    :"7z" => %w[.7z .zip .cbz .jar],
     :tgz  => %w[.tgz .tar.gz .gem],
     :tbz2 => %w[.tbz2 .tar.bz2],
     :tar  => %w[.tar],
