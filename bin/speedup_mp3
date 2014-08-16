@@ -11,14 +11,20 @@ class SpeedUpMp3
   def known_tags
     %W[TPE1 TIT2 TALB TCON TIT3 TRCK TYER COMM]
   end
+  def read_id3_tags_raw(source)
+    # Most ID3 tags in the wild are not UTF-8
+    `id3v2 -l #{source.to_s.shellescape}`.force_encoding("ISO-8859-1")
+  end
   def read_id3_tags(source)
-    `id3v2 -l #{source.to_s.shellescape}`.scan(/^([a-zA-Z0-9]{4}) \(.*?\): (.*)$/).select{|tag, value|
+    read_id3_tags_raw(source).scan(/^([a-zA-Z0-9]{4}) \(.*?\): (.*)$/).select{|tag, value|
       known_tags.include?(tag)
     }
   end
   def copy_id3_tags!(source, target)
+    tags = read_id3_tags(source).map{|tag, value| ["--#{tag}", value]}.flatten
+    return if tags.empty?
     cmd  = ["id3v2"]
-    cmd += read_id3_tags(source).map{|tag, value| ["--#{tag}", value]}.flatten
+    cmd += tags
     cmd += [target.to_s]
     system *cmd
   end
