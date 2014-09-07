@@ -223,6 +223,15 @@ Usage:
     namenorm ~/Downloads/*
 
 
+open_youtube
+------------
+
+For a file downloaded from youtube (with youtube ID encoded in name), open corresponding youtube URL.
+
+Usage:
+
+    open_youtube "Rick Astley - Never Gonna Give You Up-dQw4w9WgXcQ.mp4"
+
 openmany
 --------
 
