@@ -24,8 +24,11 @@ class MediaFile < Pathname
       `file -ib #{@path.shellescape}` =~ %r[\A(audio|video)/]
     end
   end
+  def try_realpath
+    (realpath rescue expand_path)
+  end
   def cache_key
-    @cache_key ||= [expand_path.to_s, size, mtime.to_i]
+    @cache_key ||= [try_realpath.to_s, size, mtime.to_i]
   end
   def duration
     begin
