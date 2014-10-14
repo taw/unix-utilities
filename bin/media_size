@@ -70,12 +70,13 @@ class MediaDirectory < Pathname
 end
 
 class MediaSizeReporter
-  def initialize(paths, print_totals, sorted)
+  def initialize(paths, print_totals, sorted, empty)
     @dirs = paths.map{|x|
       MediaDirectory.new(x)
     }
     @print_totals = print_totals
     @sorted = sorted
+    @empty = empty
   end
   def duration
     @dirs.map(&:duration).inject(0, &:+)
@@ -85,6 +86,7 @@ class MediaSizeReporter
   end
   def report_dir!(dir)
     return unless dir.directory? or dir.duration > 0
+    return unless dir.duration > 0 if @empty
     puts "#{dir}: #{format_time(dir.duration)}"
   end
   def each_dir(&blk)
@@ -103,6 +105,7 @@ class MediaSizeReporter
 end
 
 opts = Trollop::options do
+  opt :empty, "Skip empty in report"
   opt :totals, "Print totals"
   opt :sorted, "Sort by size"
 end
@@ -111,5 +114,5 @@ if ARGV.empty?
   STDERR.puts "Usage: #{$0} [-t] <media_dir1> <media_dir2> ..."
   exit 1
 else
-  MediaSizeReporter.new(ARGV, opts[:totals], opts[:sorted]).report!
+  MediaSizeReporter.new(ARGV, opts[:totals], opts[:sorted], opts[:empty]).report!
 end

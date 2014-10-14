@@ -212,6 +212,8 @@ Usage:
 
     media_size -t some_movie/ another_movie/ third_movie/
 
+`-e` option skips empty directories in output.
+
 namenorm
 --------
 
