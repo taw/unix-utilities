@@ -33,8 +33,7 @@ class SpeedUpMp3
   end
   def speedup_file!(source, target)
     target.dirname.mkpath
-    sox!(source, target)
-    copy_id3_tags!(source, target)
+    sox!(source, target) and copy_id3_tags!(source, target)
   end
   def speedup_to_directory!(source, target)
     if Pathname(source).directory?
