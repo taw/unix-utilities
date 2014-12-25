@@ -184,6 +184,19 @@ sacrificing tiny amount of compression quality for huge amount of convenience.
 
 See: http://t-a-w.blogspot.com/2010/07/synchronized-compressed-logging-unix.html
 
+kindle_sync
+-----------
+
+Sync your collection of ebooks with Kindle.
+Handles common format conversions (epub->mobi) if you have calibre installed.
+
+Usage example:
+
+    kindle_sync --report  ~/Documents/Ebooks /media/Kindle/documents/Ebooks
+    kindle_sync --sync    ~/Documents/Ebooks /media/Kindle/documents/Ebooks
+    kindle_sync --cleanup ~/Documents/Ebooks /media/Kindle/documents/Ebooks
+    kindle_sync --list    ~/Documents/Ebooks
+
 lastfm_status
 -------------
 

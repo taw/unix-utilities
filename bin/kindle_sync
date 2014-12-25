@@ -6,6 +6,9 @@ class Pathname
   def without_extname
     Pathname(to_s.chomp(extname))
   end
+  def to_str
+    to_s
+  end
 end
 
 class Hash
@@ -68,8 +71,14 @@ class KindleSync
   end
 
   def sync_command(state1, state2)
-    return :ok    if state1 == state2
-    return :copy  if state1 == [".pdf"] and state2 == nil
+    return :ok if state1 == state2
+    return :ok if state1 != nil and state2.include?(".mobi")
+    if state2 == nil
+      return :copy_mobi    if state1.include?(".mobi")
+      return :copy         if state1 == [".pdf"]
+      return :convert_epub if state1 == [".epub"]
+      return :convert_epub if state1 == [".epub", ".pdf"]
+    end
     return :cleanup if state1 == nil
     return :unknown
   end
@@ -86,17 +95,27 @@ class KindleSync
     end
   end
 
-  def copy_file!(a, b)
-    raise "Already exists: `#{b}'" if b.exist?
-    b.dirname.mkpath
-    FileUtils.cp a, b
+  def copy_file!(source_path, target_path)
+    raise "Already exists: `#{target_path}'" if target_path.exist?
+    target_path.dirname.mkpath
+    FileUtils.cp source_path, target_path
   end
 
-  def copy_book!(book)
+  def copy_book!(book, exts_to_copy=repo_state(book))
     raise if device_state(book)
-    repo_state(book).each do |ext|
+    exts_to_copy.each do |ext|
       copy_file! Pathname("#{@repo.path + book}#{ext}"), Pathname("#{@device.path + book}#{ext}")
     end
+  end
+
+  def convert_epub!(book)
+    raise if device_state(book)
+    raise unless repo_state(book).include?(".epub")
+
+    source_path = Pathname("#{@repo.path + book}.epub")
+    target_path = Pathname("#{@device.path + book}.mobi")
+    target_path.dirname.mkpath
+    system *%W[/Applications/calibre.app/Contents/MacOS/ebook-convert #{source_path} #{target_path} --output-profile kindle_voyage]
   end
 
   def sync!
@@ -109,9 +128,12 @@ class KindleSync
         # Use separate command for that
       when :copy
         copy_book!(book)
-      when :warn
-        puts "#{book} (#{format_state state1} | #{format_state state2} | #{cmd})"
-        warn "Don't know how to sync this book"
+      when :copy_mobi
+        copy_book!(book, [".mobi"])
+      when :convert_epub
+        convert_epub!(book)
+      when :unknown
+        warn "Don't know how to sync this book: #{book} (#{format_state state1} | #{format_state state2} | #{cmd})"
       end
     end
   end
