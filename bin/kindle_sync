@@ -56,24 +56,78 @@ class KindleSync
   end
 
   def books
-    @books ||= @device.file_groups.hzip(@repo.file_groups)
+    @books ||= @repo.file_groups.hzip(@device.file_groups)
   end
 
-  def synced_state?(state1, state2)
-    state1 == state2
+  def repo_state(book)
+    books[book][0]
+  end
+
+  def device_state(book)
+    books[book][1]
+  end
+
+  def sync_command(state1, state2)
+    return :ok    if state1 == state2
+    return :copy  if state1 == [".pdf"] and state2 == nil
+    return :cleanup if state1 == nil
+    return :unknown
+  end
+
+  def format_state(state)
+    return "-" unless state
+    state.sort.join(" ")
   end
 
   def report!
     books.sort.each do |book, (state1, state2)|
-      next if synced_state?(state1, state2)
-      state1_as_s = state1 ?  state1.join(" ") : "-"
-      state2_as_s = state2 ?  state2.join(" ") : "-"
-      puts "#{book} (#{state1_as_s} | #{state2_as_s})"
+      cmd = sync_command(state1, state2)
+      puts "#{book} (#{format_state state1} | #{format_state state2} | #{cmd})" unless cmd == :ok
+    end
+  end
+
+  def copy_file!(a, b)
+    raise "Already exists: `#{b}'" if b.exist?
+    b.dirname.mkpath
+    FileUtils.cp a, b
+  end
+
+  def copy_book!(book)
+    raise if device_state(book)
+    repo_state(book).each do |ext|
+      copy_file! Pathname("#{@repo.path + book}#{ext}"), Pathname("#{@device.path + book}#{ext}")
     end
   end
 
   def sync!
-    warn "Not implemented yet"
+    books.sort.each do |book, (state1, state2)|
+      cmd = sync_command(state1, state2)
+      case cmd
+      when :ok
+        # OK
+      when :cleanup
+        # Use separate command for that
+      when :copy
+        copy_book!(book)
+      when :warn
+        puts "#{book} (#{format_state state1} | #{format_state state2} | #{cmd})"
+        warn "Don't know how to sync this book"
+      end
+    end
+  end
+
+  def cleanup_book!(book)
+    raise if repo_state(book)
+    device_state(book).each do |ext|
+      system "trash", "#{@device.path + book}#{ext}"
+    end
+  end
+
+  def cleanup!
+    books.sort.each do |book, (state1, state2)|
+      cmd = sync_command(state1, state2)
+      cleanup_book! book if cmd == :cleanup
+    end
   end
 end
 
@@ -84,12 +138,16 @@ when [3, "--report"]
 when [3, "--sync"]
   ks = KindleSync.new(ARGV[1], ARGV[2])
   ks.sync!
+when [3, "--cleanup"]
+  ks = KindleSync.new(ARGV[1], ARGV[2])
+  ks.cleanup!
 when [2, "--list"]
   repo = BooksRepository.new(ARGV[1])
   repo.print!
 else
-  STDERR.puts "Usage: #{$0} --report /repository/path /device/documents/path"
-  STDERR.puts "   or: #{$0} --sync   /repository/path /device/documents/path"
-  STDERR.puts "   or: #{$0} --list   /repository/path"
+  STDERR.puts "Usage: #{$0} --report  /repository/path /device/documents/path"
+  STDERR.puts "   or: #{$0} --sync    /repository/path /device/documents/path"
+  STDERR.puts "   or: #{$0} --cleanup /repository/path /device/documents/path"
+  STDERR.puts "   or: #{$0} --list    /repository/path"
   exit 1
 end
