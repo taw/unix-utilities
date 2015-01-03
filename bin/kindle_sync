@@ -72,7 +72,7 @@ class KindleSync
 
   def sync_command(state1, state2)
     return :ok if state1 == state2
-    return :ok if state1 != nil and state2.include?(".mobi")
+    return :ok if state1 != nil and state2 and state2.include?(".mobi")
     if state2 == nil
       return :copy_mobi    if state1.include?(".mobi")
       return :copy         if state1 == [".pdf"]
