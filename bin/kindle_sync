@@ -35,7 +35,7 @@ class BooksRepository
 
   def files
     @path.find.select(&:file?).reject{|path|
-      path.dirname.extname == ".sdr"
+      path.dirname.extname == ".sdr" or path.basename.to_s == ".DS_Store"
     }.map{|path| path.relative_path_from(@path)}
   end
 
