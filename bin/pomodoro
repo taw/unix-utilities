@@ -14,11 +14,12 @@ end
 def with_volume(volume)
   old_volume = osa("output volume of (get volume settings)").strip
   osa("set volume output volume #{volume}")
+  yield
 ensure
   osa("set volume output volume #{old_volume}")
 end
 
-path = "/Library//Application Support/TextMate/Support/Sounds/Harp.wav"
+path = "/System/Library/Sounds/Ping.aiff"
 
 minutes = ARGV[0] ? ARGV[0].to_i : 25
 
