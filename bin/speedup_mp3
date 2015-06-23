@@ -29,7 +29,8 @@ class SpeedUpMp3
     system *cmd
   end
   def sox!(source, target)
-    system *%W[sox --show-progress #{source} #{target} tempo -s #{@factor}]
+    system *%W[sox --show-progress #{source} -t mp3 #{target}.part tempo -s #{@factor}] or raise "conversion failed"
+    system *%W[mv #{target}.part #{target}]
   end
   def speedup_file!(source, target)
     target.dirname.mkpath
