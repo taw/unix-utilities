@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require "json"
+
+def json_normalize(data)
+  if data.is_a?(Array)
+    data.map do |elem|
+      json_normalize(elem)
+    end
+  elsif data.is_a?(Hash)
+    Hash[data.map{|k,v|
+      [k, json_normalize(v)]
+    }.sort]
+  else
+    data
+  end
+end
+
+data = JSON.parse(STDIN.read)
+data = json_normalize(data)
+puts JSON.pretty_generate(data)
+

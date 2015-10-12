@@ -184,6 +184,17 @@ sacrificing tiny amount of compression quality for huge amount of convenience.
 
 See: http://t-a-w.blogspot.com/2010/07/synchronized-compressed-logging-unix.html
 
+json_pp
+-------
+
+Pretty-prints jsons and sorts keys alphabetically. This is extremely useful
+as `json_pp` included in OSX completely scrambles key order, so if you hope
+for any kind of meaningful diff, that's not going to work.
+
+Usage example:
+
+    json_pp <machine_readable.json >human_readable.json
+
 kindle_sync
 -----------
 
