@@ -60,7 +60,19 @@ class SpeedUpMp3
         speedup_to_directory!(source, target)
       end
     elsif sources.size == 1
-      speedup_file!(sources[0], target)
+      source = sources[0]
+      if source.directory?
+        source.find do |source_path|
+          target_path = target + source_path.relative_path_from(source)
+          if source_path.directory?
+            target_path.mkpath
+          else
+            speedup_file!(source_path, target_path)
+          end
+        end
+      else
+        speedup_file!(source, target)
+      end
     else
       STDERR.puts "#{target} must be a directory to speedup multiple source files to it"
       exit 1
