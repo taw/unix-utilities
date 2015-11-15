@@ -4,6 +4,12 @@ require "pp"
 require "shellwords"
 require "pathname"
 
+class Pathname
+  def shellescape
+    to_s.shellescape
+  end
+end
+
 class SpeedUpMp3
   def initialize(factor)
     @factor = factor
@@ -28,13 +34,24 @@ class SpeedUpMp3
     cmd += [target.to_s]
     system *cmd
   end
+  def sox_m4a!(source, target)
+    system %Q[ffmpeg -loglevel panic -i #{source.shellescape} -f wav pipe: | sox --show-progress -t wav - -t mp3 #{target.shellescape}.part tempo -s #{@factor}] or raise "conversion failed"
+    system *%W[mv #{target}.part #{target}]
+  end
   def sox!(source, target)
     system *%W[sox --show-progress #{source} -t mp3 #{target}.part tempo -s #{@factor}] or raise "conversion failed"
     system *%W[mv #{target}.part #{target}]
   end
   def speedup_file!(source, target)
     target.dirname.mkpath
-    sox!(source, target) and copy_id3_tags!(source, target)
+    case source.extname.downcase
+    when ".mp3"
+      sox!(source, target) and copy_id3_tags!(source, target)
+    when ".m4a"
+      sox_m4a!(source, target.to_s.sub(/\.m4a\z/, ".mp3"))
+    else
+      warn "Don't know how to convert '#{source}' to '#{target}'"
+    end
   end
   def speedup_to_directory!(source, target)
     if Pathname(source).directory?
@@ -42,7 +59,7 @@ class SpeedUpMp3
         target_child = target+child.basename
         if child.directory?
           speedup_to_directory!(child, target_child)
-        elsif child.extname =~ /\.mp3\z/i
+        else
           speedup_file!(child, target_child)
         end
       end
