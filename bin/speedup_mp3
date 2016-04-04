@@ -35,11 +35,11 @@ class SpeedUpMp3
     system *cmd
   end
   def sox_m4a!(source, target)
-    system %Q[ffmpeg -loglevel panic -i #{source.shellescape} -f wav pipe: | sox --show-progress -t wav - -t mp3 #{target.shellescape}.part tempo -s #{@factor}] or raise "conversion failed"
+    system %Q[ffmpeg -loglevel panic -i #{source.shellescape} -f wav pipe: | sox -t wav - -t mp3 #{target.shellescape}.part tempo -s #{@factor}] or raise "conversion failed"
     system *%W[mv #{target}.part #{target}]
   end
   def sox!(source, target)
-    system *%W[sox --show-progress #{source} -t mp3 #{target}.part tempo -s #{@factor}] or raise "conversion failed"
+    system *%W[sox #{source} -t mp3 #{target}.part tempo -s #{@factor}] or raise "conversion failed"
     system *%W[mv #{target}.part #{target}]
   end
   def speedup_file!(source, target)
