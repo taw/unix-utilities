@@ -16,7 +16,6 @@ def json_normalize(data)
   end
 end
 
-data = JSON.parse(STDIN.read)
+data = JSON.parse(ARGF.read)
 data = json_normalize(data)
 puts JSON.pretty_generate(data)
-
