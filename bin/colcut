@@ -3,6 +3,6 @@
 my $limit = $ARGV[0] || 120;
 
 while(<STDIN>) {
-  chomp;
+  s/\r?\n$//;
   print(substr($_, 0, $limit), "\n");
 }
