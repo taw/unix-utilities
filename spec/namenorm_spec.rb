@@ -8,8 +8,7 @@ describe "namenorm" do
       FileUtils.touch "INDEX.HTM"
       FileUtils.touch "read me.txt"
       system "namenorm *"
-      expect( path.find.map{|x| x.relative_path_from(path).to_s} ).to match_array([
-        ".",
+      expect(path.descendants).to match_array([
         "index.htm",
         "katy_perry_-_roar.mp3",
         "read_me.txt",

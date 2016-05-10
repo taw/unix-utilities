@@ -9,3 +9,10 @@ def Dir.chtmpdir
     end
   end
 end
+
+class Pathname
+  # Helper for testing
+  def descendants
+    find.map{|x| x.relative_path_from(self) }.select{|x| x != Pathname(".")}.map(&:to_s)
+  end
+end

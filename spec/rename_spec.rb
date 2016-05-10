@@ -8,8 +8,7 @@ describe "rename" do
       FileUtils.touch "three.md"
       FileUtils.touch "tfour.txt"
       system "'#{binary}' 's/txt/html/' t*"
-      expect( path.find.map{|x| x.relative_path_from(path).to_s} ).to match_array([
-        ".",
+      expect(path.descendants).to match_array([
         "one.txt",
         "tfour.html",
         "three.md",

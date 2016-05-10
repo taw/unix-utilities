@@ -10,8 +10,7 @@ describe "xrmdir" do
       FileUtils.touch "two/.DS_Store"
       FileUtils.touch "three/five/.DS_Store"
       system "#{binary} *"
-      expect( path.find.map{|x| x.relative_path_from(path).to_s} ).to eq([
-        ".",
+      expect(path.descendants).to eq([
         "three",
         "three/five",
         "three/five/.DS_Store",
@@ -32,8 +31,7 @@ describe "xrmdir" do
       FileUtils.touch "three/five/.DS_Store"
       FileUtils.touch "six/eight/nine.txt"
       system "#{binary} -r *"
-      expect( path.find.map{|x| x.relative_path_from(path).to_s} ).to eq([
-        ".",
+      expect(path.descendants).to eq([
         "six",
         "six/eight",
         "six/eight/nine.txt",
