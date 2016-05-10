@@ -20,7 +20,7 @@ ARGV.each do |d|
   next unless d.directory?
   cn = d.children
   next if cn.size <= max_size * 1.25 # avoid tiny chunks
-  puts "Splitting #{d} - #{cn.size} files"
+  # puts "Splitting #{d} - #{cn.size} files"
   slices = cn.sort.balanced_slices(max_size)
   slices.each_with_index do |fs, i|
     dn = d.sub(/\/?\Z/, "-%0#{slices.size.to_s.size}d" % (i+1))
