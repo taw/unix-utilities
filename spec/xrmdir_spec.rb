@@ -2,7 +2,7 @@ describe "xrmdir" do
   let(:binary) { Pathname(__dir__)+"../bin/xrmdir" }
 
   it "removes empty directories, killing .DS_Store on the way" do
-    Dir.chtmpdir do |path|
+    MockUnix.new do |env|
       FileUtils.mkdir_p "one"
       FileUtils.mkdir_p "two"
       FileUtils.mkdir_p "three/four"
@@ -10,7 +10,7 @@ describe "xrmdir" do
       FileUtils.touch "two/.DS_Store"
       FileUtils.touch "three/five/.DS_Store"
       system "#{binary} *"
-      expect(path.descendants).to eq([
+      expect(env).to have_content([
         "three",
         "three/five",
         "three/five/.DS_Store",
@@ -20,7 +20,7 @@ describe "xrmdir" do
   end
 
   it "recursively removes empty directories, killing .DS_Store on the way" do
-    Dir.chtmpdir do |path|
+    MockUnix.new do |env|
       FileUtils.mkdir_p "one"
       FileUtils.mkdir_p "two"
       FileUtils.mkdir_p "three/four"
@@ -31,7 +31,7 @@ describe "xrmdir" do
       FileUtils.touch "three/five/.DS_Store"
       FileUtils.touch "six/eight/nine.txt"
       system "#{binary} -r *"
-      expect(path.descendants).to eq([
+      expect(env).to have_content([
         "six",
         "six/eight",
         "six/eight/nine.txt",

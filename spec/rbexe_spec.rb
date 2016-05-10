@@ -1,6 +1,6 @@
 shared_examples "rbexe" do
   it do
-    Dir.chtmpdir do
+    MockUnix.new do |env|
       system "#{binary}", *arguments, "#{file}"
       expect(file).to be_executable
       expect(content).to eq("#!#{interpretter}\n")

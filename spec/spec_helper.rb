@@ -1,18 +1,23 @@
+require "pry"
 require "pathname"
 require "tmpdir"
 require "fileutils"
 
-def Dir.chtmpdir
-  Dir.mktmpdir do |dir|
-    Dir.chdir(dir) do
-      yield(Pathname(dir))
+class MockUnix
+  attr_reader :path
+  def initialize
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir) do
+        @path = Pathname(dir)
+        yield(self)
+      end
     end
   end
 end
 
-class Pathname
-  # Helper for testing
-  def descendants
-    find.map{|x| x.relative_path_from(self) }.select{|x| x != Pathname(".")}.map(&:to_s)
+RSpec::Matchers.define :have_content do |expected|
+  match do |env|
+    actual = env.path.find.map{|x| x.relative_path_from(env.path) }.select{|x| x != Pathname(".")}.map(&:to_s)
+    expected.sort == actual.sort
   end
 end

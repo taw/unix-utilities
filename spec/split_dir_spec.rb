@@ -2,13 +2,13 @@ describe "split_dir" do
   let(:binary) { Pathname(__dir__)+"../bin/split_dir" }
 
   it "splits directories with a lot of files" do
-    Dir.chtmpdir do |path|
+    MockUnix.new do |path|
       FileUtils.mkdir_p "test"
       (1..1207).each do |i|
         FileUtils.touch("test/%04d.txt" % i)
       end
       system "#{binary} test"
-      expect(path.descendants).to match_array([
+      expect(path).to have_content([
         "test-1",
         "test-2",
         "test-3",

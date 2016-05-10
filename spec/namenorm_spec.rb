@@ -2,13 +2,13 @@ describe "namenorm" do
   let(:binary) { Pathname(__dir__)+"../bin/namenorm" }
 
   it "normalizes file names" do
-    Dir.chtmpdir do |path|
+    MockUnix.new do |env|
       FileUtils.touch "KATY PERRY - ROAR.MP3"
       FileUtils.touch "ubuntu.14.04.iso.gz"
       FileUtils.touch "INDEX.HTM"
       FileUtils.touch "read me.txt"
       system "namenorm *"
-      expect(path.descendants).to match_array([
+      expect(env).to have_content([
         "index.htm",
         "katy_perry_-_roar.mp3",
         "read_me.txt",
