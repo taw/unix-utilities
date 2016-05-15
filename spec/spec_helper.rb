@@ -36,7 +36,12 @@ class MockUnix
   end
 
   def command_trace(name)
-    command_trace_path(name).readlines.map{|line| eval(line)}
+    path = command_trace_path(name)
+    if path.exist?
+      path.readlines.map{|line| eval(line)}
+    else
+      []
+    end
   end
 end
 

@@ -5,7 +5,8 @@ describe "openmany" do
     MockUnix.new do |env|
       env.mock_command "open"
       system "#{binary} a b c"
-      expect(env.command_trace("open")).to eq([
+      open_trace = env.command_trace("xdg-open") + env.command_trace("open")
+      expect(open_trace).to eq([
         ["a"],
         ["b"],
         ["c"],
@@ -22,7 +23,8 @@ describe "openmany" do
         fh.puts "f"
         fh.close_write
       end
-      expect(env.command_trace("open")).to eq([
+      open_trace = env.command_trace("xdg-open") + env.command_trace("open")
+      expect(open_trace).to eq([
         ["d"],
         ["e"],
         ["f"],
