@@ -7,7 +7,7 @@ describe "namenorm" do
       FileUtils.touch "ubuntu.14.04.iso.gz"
       FileUtils.touch "INDEX.HTM"
       FileUtils.touch "read me.txt"
-      system "namenorm *"
+      system "#{binary} *"
       expect(env).to have_content([
         "index.htm",
         "katy_perry_-_roar.mp3",

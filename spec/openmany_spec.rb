@@ -4,6 +4,7 @@ describe "openmany" do
   it "opens files listed on command line" do
     MockUnix.new do |env|
       env.mock_command "open"
+      env.mock_command "xdg-open"
       system "#{binary} a b c"
       open_trace = env.command_trace("xdg-open") + env.command_trace("open")
       expect(open_trace).to eq([
@@ -17,6 +18,7 @@ describe "openmany" do
   it "opens files listed from STDIN if no command line arguments are passed" do
     MockUnix.new do |env|
       env.mock_command "open"
+      env.mock_command "xdg-open"
       IO.popen("#{binary}", "r+") do |fh|
         fh.puts "d"
         fh.puts "e"
