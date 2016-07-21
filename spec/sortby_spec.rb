@@ -17,7 +17,7 @@ describe "sortby" do
     end
   end
 
-  it "sortby abs" do
+  it "sortby size" do
     IO.popen("#{binary} '[$_.size, $_]'", "r+") do |fh|
       fh.puts %W[Lorem ipsum dolor sit amet, consectetur adipisicing elit]
       fh.close_write
