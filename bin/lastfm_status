@@ -26,9 +26,12 @@ users = ARGV
 
 users.each do |user_name|
   url = "http://www.last.fm/user/#{user_name}"
-  doc = Nokogiri::HTML(open(url))
-
-  last_song = doc.css(".chartlist tr")[1]
+  begin
+    doc = Nokogiri::HTML(open(url))
+    last_song = doc.css(".chartlist tr")[1]
+  rescue OpenURI::HTTPError
+    last_song = nil
+  end
 
   if last_song
     artist, title, = last_song.css(".chartlist-name a").map(&:text)
