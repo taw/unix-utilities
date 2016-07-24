@@ -2,6 +2,7 @@ require "pry"
 require "pathname"
 require "tmpdir"
 require "fileutils"
+require "timeout"
 
 class MockUnix
   attr_reader :path

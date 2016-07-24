@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require "thread"
-require 'zlib'
+require "zlib"
 
 def gzip_stream(io_in, io_out, flush_freq)
   fh = Zlib::GzipWriter.wrap(io_out)
@@ -23,4 +23,4 @@ def gzip_stream(io_in, io_out, flush_freq)
   fh.close
 end
 
-gzip_stream(STDIN, STDOUT, 5)
+gzip_stream(STDIN, STDOUT, 1)
