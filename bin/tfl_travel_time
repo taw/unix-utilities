@@ -9,26 +9,27 @@ def parse_time(time)
   t = time.dup
   t.sub!(/Total time:/, "")
   m += $1.to_i * 60 if t.sub!(/(\d+)hr/, "")
-  m += $1.to_i if t.sub!(/(\d+)mins/, "")
-  t.gsub!(/\s/, "")
+  m += $1.to_i if t.sub!(/(\d+)mins?/, "")
+  t.gsub!(/\s|\u{A0}/, "")
   raise "Time parse error: #{time.inspect}" unless t.empty?
   m
 end
 
 def tfl_uri(from, to)
-  "http://tfl.gov.uk/plan-a-journey/results?" +
-  [
-    "From=#{URI.escape(from)}",
-    "To=#{URI.escape(to)}",
-    "Mode=tube",
-    "Mode=bus",
-    "Mode=dlr",
-    "Mode=river-bus",
-    "Mode=tram",
-    "Mode=cable-car",
-    "Mode=overground",
-    "Mode=national-rail",
-    "Mode=coach",
+  "https://tfl.gov.uk/plan-a-journey/results?" + %W[
+  From=#{URI.escape(from)}
+  To=#{URI.escape(to)}
+  JpType=publictransport
+  Mode=bus
+  Mode=tube
+  Mode=national-rail
+  Mode=dlr
+  Mode=overground
+  Mode=tflrail
+  Mode=river-bus
+  Mode=tram
+  Mode=cable-car
+  Mode=coach
   ].join("&")
 end
 
