@@ -38,7 +38,7 @@ describe "unall" do
   it "unzips archives in tar.bz2 format" do
     MockUnix.new do |env|
       create_archive do
-        system "tar c a.txt b.txt | gzip >foo.tar.bz2"
+        system "tar c a.txt b.txt | bzip2 >foo.tar.bz2"
       end
       unpacks_and_deletes_archive binary, "foo.tar.bz2"
     end
