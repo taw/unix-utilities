@@ -48,5 +48,6 @@ t = travel_time(from, to)
 if t
   puts t
 else
-  system "open", tfl_uri(from, to)
+  # system "open", tfl_uri(from, to)
+  warn "Can't find travel time from `#{from}' to `#{to}'"
 end
