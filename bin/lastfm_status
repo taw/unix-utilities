@@ -37,7 +37,7 @@ users.each do |user_name|
     artist, title, = last_song.css(".chartlist-name a").map(&:text)
     time_played = Time.parse(last_song.css(".chartlist-timestamp span").text)
     ago = Time.now - time_played
-    print "#{user_name}'s last song was `#{title}' by `#{artist}` at #{time_played}\n"
+    print "#{user_name}'s last song was `#{title}' by `#{artist}' at #{time_played}\n"
     print "It was #{ago.time_pp} ago\n"
   else
     print "No recent songs by #{user_name}\n"
