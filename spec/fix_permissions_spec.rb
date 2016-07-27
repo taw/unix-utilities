@@ -13,16 +13,16 @@ describe "fix_permissions" do
 
       actual = env.path
                   .find
-                  .map{|x| [x.relative_path_from(env.path).to_s, ("%o" % x.stat.mode)[-3..-1]] }
+                  .map{|x| [x.relative_path_from(env.path).to_s, x.stat.mode & 0o777] }
                   .select{|x,| x != "."}
                   .sort
 
       expect(actual).to eq([
-        ["empty.txt", "644"],
-        ["foo.rb", "755"],
-        ["foo.sh", "755"],
-        ["hello.txt", "644"],
-        ["true", "755"]
+        ["empty.txt", 0o666 &~ File.umask],
+        ["foo.rb",    0o777 &~ File.umask],
+        ["foo.sh",    0o777 &~ File.umask],
+        ["hello.txt", 0o666 &~ File.umask],
+        ["true",      0o777 &~ File.umask],
       ])
     end
   end
