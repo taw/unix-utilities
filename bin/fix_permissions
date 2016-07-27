@@ -28,7 +28,7 @@ def fix_permissions(path)
     next if fn.directory?
     next if fn.symlink?
     next unless fn.executable?
-    fn.chmod(0644) unless fn.should_be_executable?
+    fn.chmod(0666 &~ File.umask) unless fn.should_be_executable?
   end
 end
 
