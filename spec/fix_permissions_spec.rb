@@ -6,7 +6,7 @@ describe "fix_permissions" do
       File.write("foo.sh", "#!/bin/bash\necho 123")
       File.write("foo.rb", "#!/bin/env ruby")
       File.write("hello.txt", "Hello, world!")
-      File.write("true", File.read("/usr/bin/true"))
+      File.write("true", File.read(`which true`.chomp))
       File.write("empty.txt", "")
       system "chmod +x *"
       system "#{binary} *"
