@@ -464,6 +464,15 @@ Usage example:
 
 Mostly useful for directories containing images.
 
+sqlite2json
+-----------
+
+Exports sqlite database into a bunch of json files, one per table.
+
+Usage example:
+
+    sqlite2json database.sqlite output/
+
 strip_9gag
 ----------
 

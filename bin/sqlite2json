@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+require "pathname"
+require "sqlite3"
+require "json"
+
+# There are some stupid rounding issues with this
+class Sqlite2JSON
+  def initialize(db_path, output_path)
+    @db_path = Pathname(db_path)
+    @output_path = Pathname(output_path)
+    @db = SQLite3::Database.open(db_path)
+    raise "Output directory already exists" if @output_path.exist?
+  end
+
+  def tables
+    @tables ||= @db.execute("SELECT name FROM sqlite_master WHERE type='table'").flatten.sort
+  end
+
+  def run!
+    @output_path.mkpath
+    tables.each do |table|
+      query = @db.prepare("SELECT * FROM `#{table}`")
+      columns = query.columns
+      data_json = query.execute.map{|data| columns.zip(data).to_h }.to_json
+      (@output_path+"#{table}.json").open("w") do |fh|
+        fh.puts data_json
+      end
+    end
+  end
+end
+
+unless ARGV.size == 2
+  STDERR.puts "Usage: #{$0} file.sqlite output_dir/"
+end
+
+Sqlite2JSON.new(*ARGV).run!
