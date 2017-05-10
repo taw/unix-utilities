@@ -21,7 +21,7 @@ class MediaFile < Pathname
     when *%W[.sub .txt .jpg .png .srt .nfo .pdf .m3u], ""
       false
     else
-      `file -ib #{@path.shellescape}` =~ %r[\A(audio|video)/]
+      `file -Ib #{@path.shellescape}` =~ %r[\A(audio|video)/]
     end
   end
   def try_realpath
