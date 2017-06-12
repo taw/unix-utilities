@@ -2,9 +2,10 @@ describe "lastfm_status" do
   let(:binary) { Pathname(__dir__)+"../bin/lastfm_status" }
 
   # Something old and abandoned or close enough
+  # timezone last.fm returns doesn't seem to be consistent
   it "real account" do
     expect(`#{binary} niphree`).to match(
-      /\Aniphree's last song was `Master of Tides' by `Lindsey Stirling' at 2015-05-13 05:45:00 \+\d{4}\nIt was \d+d \d+h \d+m\d+s ago\n\z/
+      /\Aniphree's last song was `Master of Tides' by `Lindsey Stirling' at 2015-05-13 \d+:45:00 \+\d{4}\nIt was \d+d \d+h \d+m\d+s ago\n\z/
     )
   end
 
