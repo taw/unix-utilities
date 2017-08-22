@@ -47,8 +47,8 @@ class SpeedUpMp3
     case source.extname.downcase
     when ".mp3"
       sox!(source, target) and copy_id3_tags!(source, target)
-    when ".m4a", ".mp4"
-      sox_m4a!(source, target.to_s.sub(/\.(?:m4a|mp4)\z/, ".mp3"))
+    when ".m4a", ".mp4", ".opus", ".ogg"
+      sox_m4a!(source, target.to_s.sub(/\.(?:m4a|mp4|opus|ogg)\z/i, ".mp3"))
     else
       warn "Don't know how to convert '#{source}' to '#{target}'"
     end
