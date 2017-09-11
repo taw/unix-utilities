@@ -32,6 +32,7 @@ end
 
 unless ARGV.size == 2
   STDERR.puts "Usage: #{$0} file.sqlite output_dir/"
+  exit 1
 end
 
 Sqlite2JSON.new(*ARGV).run!
