@@ -484,6 +484,16 @@ Usage:
     strip_9gag http://some.site.example/file.jpg
 
 
+swap
+----
+
+Swaps files. If you pass more than 2 first will be moved to second etc. until last is moved to first. 
+
+Usage:
+
+    swap a.png b.png
+    swap a.png b.png c.png d.png
+
 tac
 ---
 

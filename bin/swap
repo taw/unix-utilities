@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+require "pathname"
+require "fileutils"
+
+def swap(*paths)
+  paths.each do |path|
+    unless Pathname(path).exist?
+      STDERR.puts "#{path} does not exist, swap aborted"
+      exit 1
+    end
+  end
+
+  random_path = "tmp-#{rand(2**256).to_s(16)}"
+  if Pathname(random_path).exist?
+    STDERR.puts "#{random_path} exists, swap aborted"
+    exit 1
+  end
+
+  [random_path, *paths, random_path].each_cons(2).reverse_each do |a,b|
+    FileUtils.mv a, b
+  end
+end
+
+
+unless ARGV.size >= 2
+  STDERR.puts "Usage: #{$0} file1 file2 [file3 ...]"
+  exit 1
+end
+
+swap(*ARGV)
