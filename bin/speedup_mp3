@@ -14,18 +14,22 @@ class SpeedUpMp3
   def initialize(factor)
     @factor = factor
   end
+
   def known_tags
     %W[TPE1 TIT2 TALB TCON TIT3 TRCK TYER COMM]
   end
+
   def read_id3_tags_raw(source)
     # Most ID3 tags in the wild are not UTF-8
     `id3v2 -l #{source.to_s.shellescape}`.force_encoding("ISO-8859-1")
   end
+
   def read_id3_tags(source)
     read_id3_tags_raw(source).scan(/^([a-zA-Z0-9]{4}) \(.*?\): (.*)$/).select{|tag, value|
       known_tags.include?(tag)
     }
   end
+
   def copy_id3_tags!(source, target)
     tags = read_id3_tags(source).map{|tag, value| ["--#{tag}", value]}.flatten
     return if tags.empty?
@@ -34,27 +38,42 @@ class SpeedUpMp3
     cmd += [target.to_s]
     system *cmd
   end
+
   def sox_m4a!(source, target)
     system %Q[ffmpeg -loglevel panic -i #{source.shellescape} -f wav pipe: | sox -t wav - -t mp3 #{target.shellescape}.part tempo -s #{@factor}] or raise "#{source} conversion failed"
     system *%W[mv #{target}.part #{target}]
   end
+
   def sox!(source, target)
     system *%W[sox #{source} -t mp3 #{target}.part tempo -s #{@factor}] or raise "#{source} conversion failed"
     system *%W[mv #{target}.part #{target}]
   end
+
+  def speedup_video!(source, target)
+    # TODO: there are ways to stack filters for other speeds
+    raise "ffmpeg only supports speeds from 0.5 to 2.0" unless (0.5..2.0).include?(@factor)
+    filter = "[0:v]setpts=PTS/#{@factor}[v];[0:a]atempo=#{@factor}[a]"
+    part_target = target.dirname + "part-#{target.basename}"
+    system *%W[ffmpeg -i #{source} -filter_complex #{filter} -map [v] -map [a] #{part_target}]
+    system *%W[mv #{part_target} #{target}]
+  end
+
   def speedup_file!(source, target)
     target.dirname.mkpath
     case source.extname.downcase
     when ".mp3"
       sox!(source, target) and copy_id3_tags!(source, target)
-    when ".m4a", ".mp4", ".opus", ".ogg"
+    when ".m4a", ".opus", ".ogg"
       sox_m4a!(source, target.to_s.sub(/\.(?:m4a|mp4|opus|ogg)\z/i, ".mp3"))
+    when ".mp4", ".mkv"
+      speedup_video!(source, target)
     when ".wav"
       sox!(source, target.to_s.sub(/\.(?:wav)\z/i, ".mp3"))
     else
       warn "Don't know how to convert '#{source}' to '#{target}'"
     end
   end
+
   def speedup_to_directory!(source, target)
     if Pathname(source).directory?
       source.children.each do |child|
@@ -69,6 +88,7 @@ class SpeedUpMp3
       speedup_file!(source, target+source.basename)
     end
   end
+
   def run!(args)
     target = args.pop
     sources = args
