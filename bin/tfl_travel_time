@@ -2,7 +2,7 @@
 
 require "uri"
 require "open-uri"
-require "nokogiri"
+require "json"
 
 def parse_time(time)
   m = 0
@@ -16,21 +16,7 @@ def parse_time(time)
 end
 
 def tfl_uri(from, to)
-  "https://tfl.gov.uk/plan-a-journey/results?" + %W[
-  From=#{URI.escape(from)}
-  To=#{URI.escape(to)}
-  JpType=publictransport
-  Mode=bus
-  Mode=tube
-  Mode=national-rail
-  Mode=dlr
-  Mode=overground
-  Mode=tflrail
-  Mode=river-bus
-  Mode=tram
-  Mode=cable-car
-  Mode=coach
-  ].join("&")
+  "https://api-argon.tfl.gov.uk/Journey/JourneyResults/#{URI.escape(from)}/to/#{URI.escape(to)}"
 end
 
 def doc(url)
@@ -39,8 +25,8 @@ end
 
 def travel_time(from, to)
   uri = tfl_uri(from, to)
-  doc = Nokogiri(open(uri).read)
-  doc.css(".publictransport-box .journey-time").map(&:text).map{|t| parse_time(t)}.min
+  data = JSON.parse(open(uri).read)
+  data["journeys"].map{|j| j["duration"]}.min
 end
 
 from, to = ARGV
