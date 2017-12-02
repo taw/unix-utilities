@@ -7,10 +7,11 @@ require "trollop"
 class Unarchiver
   Formats = {
     :rar  => %w[.rar .cbr],
-    :"7z" => %w[.7z .zip .cbz .jar .civ5mod ],
+    :"7z" => %w[.7z .zip .cbz .jar .civ5mod],
     :tgz  => %w[.tgz .tar.gz .gem],
     :tbz2 => %w[.tbz2 .tar.bz2],
     :tar  => %w[.tar],
+    :txz  => %w[.tar.xz],
   }
   attr_accessor :force_separate_dir
   attr_reader :statuses
@@ -60,7 +61,9 @@ class Unarchiver
   def files_tar(fn)
     `tar -tf #{fn.shellescape}`.split("\n")
   end
-
+  def files_txz(fn)
+    `tar -tf #{fn.shellescape}`.split("\n")
+  end
   def unpack_rar(fn)
     system "unrar", "x", fn
   end
@@ -72,6 +75,9 @@ class Unarchiver
   end
   def unpack_tbz2(fn)
     system "tar", "-xjf", fn
+  end
+  def unpack_txz(fn)
+    system "tar", "-xf", fn
   end
   def unpack_tar(fn)
     system "tar", "-xf", fn
