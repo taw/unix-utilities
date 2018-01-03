@@ -12,8 +12,9 @@ class Pathname
   end
 end
 
+Cache = Moneta.new(:PStore, file: "#{ENV["HOME"]}/.media_size.cache")
+
 class MediaFile < Pathname
-  Cache = Moneta.new(:PStore, file: "#{ENV["HOME"]}/.media_size.cache")
   def media_file?
     case extname.downcase
     when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf]
@@ -52,6 +53,43 @@ class MediaFile < Pathname
   end
 end
 
+class MediaURL
+  def initialize(url)
+    @url = url
+  end
+  def cache_key
+    @cache_key ||= [@url]
+  end
+  def duration
+    begin
+      Cache[cache_key] ||= compute_duration
+    rescue
+      warn "FAIL: #{$!}"
+      0
+    end
+  end
+  def compute_duration
+    answer = `youtube-dl --get-duration #{@url.shellescape}`
+    if answer.empty?
+      warn "Unknown size of #{@url}"
+      0
+    elsif answer =~ /\A((?:\d+:)?\d\d:\d\d\s+)+\z/
+      answer.split.map{|part|
+        hms = part.split(":")
+        hms = [0, *hms] if hms.size < 3
+        h,m,s = hms
+        h.to_i*3600 + m.to_i*60 + s.to_i
+      }.inject(0, &:+)
+    else
+      warn "Parse error: `#{answer}'"
+      0
+    end
+  end
+  def to_s
+    @url
+  end
+end
+
 class MediaDirectory < Pathname
   def media_files
     unless @media_files
@@ -71,9 +109,13 @@ end
 
 class MediaSizeReporter
   def initialize(paths, print_totals, sorted, empty)
-    @dirs = paths.map{|x|
-      MediaDirectory.new(x)
-    }
+    @dirs = paths.map do |x|
+      if x =~ /\Ahttps?:/
+        MediaURL.new(x)
+      else
+        MediaDirectory.new(x)
+      end
+    end
     @print_totals = print_totals
     @sorted = sorted
     @empty = empty
@@ -85,9 +127,13 @@ class MediaSizeReporter
     "%d:%02d:%02d" % [s/3600, s/60%60, s%60]
   end
   def report_dir!(dir)
-    return unless dir.directory? or dir.duration > 0
-    return unless dir.duration > 0 if @empty
-    puts "#{dir}: #{format_time(dir.duration)}"
+    if dir.is_a?(MediaURL)
+      puts "#{dir}: #{format_time(dir.duration)}"
+    else
+      return unless dir.directory? or dir.duration > 0
+      return unless dir.duration > 0 if @empty
+      puts "#{dir}: #{format_time(dir.duration)}"
+    end
   end
   def each_dir(&blk)
     if @sorted
