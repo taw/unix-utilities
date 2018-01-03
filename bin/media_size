@@ -25,20 +25,23 @@ class MediaFile < Pathname
       `file -Ib #{@path.shellescape}` =~ %r[\A(audio|video)/]
     end
   end
+
   def try_realpath
     (realpath rescue expand_path)
   end
+
   def cache_key
     @cache_key ||= [try_realpath.to_s, size, mtime.to_i]
   end
+
+  # For media files we cache fails as 0, since answer won't change
   def duration
-    begin
-      Cache[cache_key] ||= compute_duration
-    rescue
-      warn "FAIL: #{$!}"
-      0
-    end
+    Cache[cache_key] ||= compute_duration
+  rescue
+    warn "FAIL: #{$!}"
+    0
   end
+
   def compute_duration
     answer = `exiftool -n -s -Duration -PlayDuration #{shellescape}`.sub(" (approx)", "")
     if answer.empty?
@@ -57,23 +60,29 @@ class MediaURL
   def initialize(url)
     @url = url
   end
+
   def cache_key
     @cache_key ||= [@url]
   end
+
+  # For URLs we do not cache fails, as that's likely a network issue and can be retried
   def duration
-    begin
-      Cache[cache_key] ||= compute_duration
-    rescue
-      warn "FAIL: #{$!}"
-      0
+    Cache[cache_key] ||= begin
+      answer = compute_duration
+      return 0 unless answer
+      answer
     end
+  rescue
+    warn "FAIL: #{$!}"
+    0
   end
+
   def compute_duration
     answer = `youtube-dl --get-duration #{@url.shellescape}`
     if answer.empty?
       warn "Unknown size of #{@url}"
-      0
-    elsif answer =~ /\A((?:\d+:)?\d\d:\d\d\s+)+\z/
+      nil
+    elsif answer =~ /\A((?:\d+:)?\d?\d:\d\d\s+)+\z/
       answer.split.map{|part|
         hms = part.split(":")
         hms = [0, *hms] if hms.size < 3
@@ -82,9 +91,10 @@ class MediaURL
       }.inject(0, &:+)
     else
       warn "Parse error: `#{answer}'"
-      0
+      nil
     end
   end
+
   def to_s
     @url
   end
@@ -102,6 +112,7 @@ class MediaDirectory < Pathname
     end
     @media_files
   end
+
   def duration
     @duration ||= media_files.map(&:duration).inject(0, &:+)
   end
@@ -120,12 +131,15 @@ class MediaSizeReporter
     @sorted = sorted
     @empty = empty
   end
+
   def duration
     @dirs.map(&:duration).inject(0, &:+)
   end
+
   def format_time(s)
     "%d:%02d:%02d" % [s/3600, s/60%60, s%60]
   end
+
   def report_dir!(dir)
     if dir.is_a?(MediaURL)
       puts "#{dir}: #{format_time(dir.duration)}"
@@ -135,6 +149,7 @@ class MediaSizeReporter
       puts "#{dir}: #{format_time(dir.duration)}"
     end
   end
+
   def each_dir(&blk)
     if @sorted
       @dirs.sort_by(&:duration).each(&blk)
@@ -142,6 +157,7 @@ class MediaSizeReporter
       @dirs.each(&blk)
     end
   end
+
   def report!
     each_dir do |dir|
       report_dir!(dir)
