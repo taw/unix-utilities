@@ -36,7 +36,9 @@ class MediaFile < Pathname
 
   # For media files we cache fails as 0, since answer won't change
   def duration
-    Cache[cache_key] ||= compute_duration
+    cached = Cache[cache_key]
+    return cached if cached
+    Cache[cache_key] = compute_duration
   rescue
     warn "FAIL: #{$!}"
     0
@@ -67,11 +69,11 @@ class MediaURL
 
   # For URLs we do not cache fails, as that's likely a network issue and can be retried
   def duration
-    Cache[cache_key] ||= begin
-      answer = compute_duration
-      return 0 unless answer
-      answer
-    end
+    cached = Cache[cache_key]
+    return cached if cached
+    computed = compute_duration
+    return 0 unless computed
+    Cache[cache_key] = computed
   rescue
     warn "FAIL: #{$!}"
     0
