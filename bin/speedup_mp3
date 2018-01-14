@@ -60,6 +60,7 @@ class SpeedUpMp3
 
   def speedup_file!(source, target)
     target.dirname.mkpath
+    return if source.basename.to_s == ".DS_Store" # OSX junk
     case source.extname.downcase
     when ".mp3"
       sox!(source, target) and copy_id3_tags!(source, target)
