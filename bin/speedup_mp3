@@ -3,6 +3,7 @@
 require "pp"
 require "shellwords"
 require "pathname"
+require "fileutils"
 
 class Pathname
   def shellescape
@@ -39,14 +40,22 @@ class SpeedUpMp3
     system *cmd
   end
 
+  def copy_timestamp!(source, target)
+    FileUtils.touch(target, mtime: source.mtime)
+  end
+
   def sox_m4a!(source, target)
-    system %Q[ffmpeg -loglevel panic -i #{source.shellescape} -f wav pipe: | sox -t wav - -t mp3 #{target.shellescape}.part tempo -s #{@factor}] or raise "#{source} conversion failed"
-    system *%W[mv #{target}.part #{target}]
+    part_target = "#{target}.part"
+    system %Q[ffmpeg -loglevel panic -i #{source.shellescape} -f wav pipe: | sox -t wav - -t mp3 #{part_target.shellescape} tempo -s #{@factor}] or raise "#{source} conversion failed"
+    copy_timestamp!(source, part_target)
+    system *%W[mv #{part_target} #{target}]
   end
 
   def sox!(source, target)
-    system *%W[sox #{source} -t mp3 #{target}.part tempo -s #{@factor}] or raise "#{source} conversion failed"
-    system *%W[mv #{target}.part #{target}]
+    part_target = "#{target}.part"
+    system *%W[sox #{source} -t mp3 #{part_target} tempo -s #{@factor}] or raise "#{source} conversion failed"
+    copy_timestamp!(source, part_target)
+    system *%W[mv #{part_target} #{target}]
   end
 
   def speedup_video!(source, target)
@@ -55,6 +64,7 @@ class SpeedUpMp3
     filter = "[0:v]setpts=PTS/#{@factor}[v];[0:a]atempo=#{@factor}[a]"
     part_target = target.dirname + "part-#{target.basename}"
     system *%W[ffmpeg -i #{source} -filter_complex #{filter} -map [v] -map [a] #{part_target}]
+    copy_timestamp!(source, part_target)
     system *%W[mv #{part_target} #{target}]
   end
 
