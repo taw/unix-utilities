@@ -20,7 +20,9 @@ def gzip_stream(io_in, io_out, flush_freq)
       fh.print(line)
     end
   end
-  fh.close
+  lock.synchronize do
+    fh.close
+  end
 end
 
 gzip_stream(STDIN, STDOUT, 1)
