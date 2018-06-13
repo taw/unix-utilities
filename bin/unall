@@ -12,6 +12,7 @@ class Unarchiver
     :tbz2 => %w[.tbz2 .tar.bz2],
     :tar  => %w[.tar],
     :txz  => %w[.tar.xz],
+    :single_file => %w[.gz .bz2 .xz],
   }
   attr_accessor :force_separate_dir
   attr_reader :statuses
@@ -70,6 +71,9 @@ class Unarchiver
   def files_txz(fn)
     `tar -tf #{fn.shellescape}`.split("\n")
   end
+  def files_single_file(fn)
+    [File.basename(fn, File.extname(fn))]
+  end
   def unpack_rar(fn)
     system "unrar", "x", fn
   end
@@ -87,6 +91,9 @@ class Unarchiver
   end
   def unpack_tar(fn)
     system "tar", "-xf", fn
+  end
+  def unpack_single_file(fn)
+    system "7za", "x", fn
   end
 end
 
