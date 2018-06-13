@@ -31,8 +31,14 @@ class Unarchiver
         if prefixes.size == 1 and !File.exist?(prefixes[0]) and !force_separate_dir
           return send("unpack_#{fmt}", fn)
         else
-          FileUtils.mkdir_p dn
-          return Dir.chdir(dn){ send("unpack_#{fmt}", fn) ? "OK" : "FAIL" }
+          counter = 1
+          dnx = dn
+          while File.exist?(dnx)
+            dnx = "#{dn}-#{counter}"
+            counter += 1
+          end
+          FileUtils.mkdir_p dnx
+          return Dir.chdir(dnx){ send("unpack_#{fmt}", fn) ? "OK" : "FAIL" }
         end
       end
     end
