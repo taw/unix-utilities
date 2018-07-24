@@ -23,25 +23,32 @@ class Unarchiver
   def formats
     @formats ||= Formats.map{|fmt, exts| exts.map{|ext| [fmt, ext]}}.flatten(1)
   end
+  def unarchive_run_with_fmt(fn, bn, fmt, ext)
+    dn = bn[0...-ext.size]
+    prefixes = send("files_#{fmt}", fn).map{|f| f.sub(/\/.*/, "")}.uniq.select{|f| f != ""}
+    if prefixes.size == 1 and !File.exist?(prefixes[0]) and !force_separate_dir
+      send("unpack_#{fmt}", fn)
+    else
+      counter = 1
+      dnx = dn
+      while File.exist?(dnx)
+        dnx = "#{dn}-#{counter}"
+        counter += 1
+      end
+      FileUtils.mkdir_p dnx
+      Dir.chdir(dnx){ send("unpack_#{fmt}", fn) ? "OK" : "FAIL" }
+    end
+  end
   def unarchive_run(fn)
     bn = File.basename(fn)
     formats.each do |fmt, ext|
       if bn.downcase.reverse[0, ext.size] == ext.reverse
-        dn = bn[0...-ext.size]
-        prefixes = send("files_#{fmt}", fn).map{|f| f.sub(/\/.*/, "")}.uniq.select{|f| f != ""}
-        if prefixes.size == 1 and !File.exist?(prefixes[0]) and !force_separate_dir
-          return send("unpack_#{fmt}", fn)
-        else
-          counter = 1
-          dnx = dn
-          while File.exist?(dnx)
-            dnx = "#{dn}-#{counter}"
-            counter += 1
-          end
-          FileUtils.mkdir_p dnx
-          return Dir.chdir(dnx){ send("unpack_#{fmt}", fn) ? "OK" : "FAIL" }
-        end
+        return unarchive_run_with_fmt(fn, bn, fmt, ext)
       end
+    end
+    mime_type = `file -b --mime-type #{fn.shellescape}`.chomp
+    if mime_type == "application/zip"
+      return unarchive_run_with_fmt(fn, bn, :"7z", File.extname(fn))
     end
     return "Not supported"
   end

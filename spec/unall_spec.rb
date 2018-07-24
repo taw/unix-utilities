@@ -43,4 +43,14 @@ describe "unall" do
       unpacks_and_deletes_archive binary, "foo.tar.bz2"
     end
   end
+
+  it "unzips archives in .zip format even with nonstandard extension" do
+    MockUnix.new do |env|
+      create_archive do
+        system "7za a foo.zip a.txt b.txt >/dev/null"
+        system "mv foo.zip foo.wtf"
+      end
+      unpacks_and_deletes_archive binary, "foo.wtf"
+    end
+  end
 end
