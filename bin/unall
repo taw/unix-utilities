@@ -4,7 +4,7 @@ require "fileutils"
 require "shellwords"
 require "trollop"
 
-class Unarchiver
+class UnarchiveFile
   Formats = {
     :rar  => %w[.rar .cbr],
     :"7z" => %w[.7z .zip .cbz .jar .civ5mod],
@@ -14,113 +14,141 @@ class Unarchiver
     :txz  => %w[.tar.xz],
     :single_file => %w[.gz .bz2 .xz],
   }
-  attr_accessor :force_separate_dir
-  attr_reader :statuses
-  def initialize
-    @statuses = Hash.new{|ht,k| ht[k] = []}
-    @force_separate_dir = false
-  end
+
   def formats
     @formats ||= Formats.map{|fmt, exts| exts.map{|ext| [fmt, ext]}}.flatten(1)
   end
-  def unarchive_run_with_fmt(fn, bn, fmt, ext)
-    dn = bn[0...-ext.size]
-    prefixes = send("files_#{fmt}", fn).map{|f| f.sub(/\/.*/, "")}.uniq.select{|f| f != ""}
-    if prefixes.size == 1 and !File.exist?(prefixes[0]) and !force_separate_dir
-      send("unpack_#{fmt}", fn)
+
+  def initialize(path, force_separate_dir)
+    @path = File.expand_path(path)
+    @force_separate_dir = force_separate_dir
+  end
+
+  def mime_type
+    `file -b --mime-type #{@path.shellescape}`.chomp
+  end
+
+  def basename
+    File.basename(@path)
+  end
+
+  def call
+    return "Looking like multipart, skipping" if @path =~ /part/i
+    fmt_ext = detect_format or return "Not supported"
+    fmt, ext = fmt_ext
+    if needs_directory?(fmt)
+      dnx = create_directory(basename[0...-ext.size])
+      Dir.chdir(dnx){ send("unpack_#{fmt}") ? "OK" : "FAIL" }
     else
-      counter = 1
-      dnx = dn
-      while File.exist?(dnx)
-        dnx = "#{dn}-#{counter}"
-        counter += 1
-      end
-      FileUtils.mkdir_p dnx
-      Dir.chdir(dnx){ send("unpack_#{fmt}", fn) ? "OK" : "FAIL" }
+      send("unpack_#{fmt}") ? "OK" : "FAIL"
     end
   end
-  def unarchive_run(fn)
-    bn = File.basename(fn)
+
+  def create_directory(dn)
+    counter = 1
+    dnx = dn
+    while File.exist?(dnx)
+      dnx = "#{dn}-#{counter}"
+      counter += 1
+    end
+    FileUtils.mkdir_p dnx
+    return dnx
+  end
+
+  def needs_directory?(fmt)
+    return true if @force_separate_dir
+    prefixes = send("files_#{fmt}").map{|f| f.sub(/\/.*/, "")}.uniq.select{|f| f != ""}
+    return true if prefixes.size > 1
+    return true if File.exist?(prefixes[0])
+    false
+  end
+
+  def detect_format
     formats.each do |fmt, ext|
-      if bn.downcase.reverse[0, ext.size] == ext.reverse
-        return unarchive_run_with_fmt(fn, bn, fmt, ext)
+      if basename.downcase[-ext.size..-1] == ext
+        return [fmt, ext]
       end
     end
-    mime_type = `file -b --mime-type #{fn.shellescape}`.chomp
     if mime_type == "application/zip"
-      return unarchive_run_with_fmt(fn, bn, :"7z", File.extname(fn))
+      return [:"7z", File.extname(@path)]
     end
-    return "Not supported"
+    return nil
   end
-  def unarchive(fn)
-    if fn =~ /part/i
-      return "Looking like multipart, skipping"
-    end
-    fn = File.expand_path(fn)
-    @statuses[unarchive_run(fn)] << fn
+
+  def files_rar
+    `unrar vb #{@path.shellescape}`.split("\n")
   end
-  def files_rar(fn)
-    `unrar vb #{fn.shellescape}`.split("\n")
-  end
-  def files_7z(fn)
+  def files_7z
     # First is archive name
-    `7za l -slt #{fn.shellescape}`.scan(/^Path = (.*)/).flatten[1..-1]
+    `7za l -slt #{@path.shellescape}`.scan(/^Path = (.*)/).flatten[1..-1]
   end
-  def files_tgz(fn)
-    `tar -tzf #{fn.shellescape}`.split("\n")
+  def files_tgz
+    `tar -tzf #{@path.shellescape}`.split("\n")
   end
-  def files_tbz2(fn)
-    `tar -tjf #{fn.shellescape}`.split("\n")
+  def files_tbz2
+    `tar -tjf #{@path.shellescape}`.split("\n")
   end
-  def files_tar(fn)
-    `tar -tf #{fn.shellescape}`.split("\n")
+  def files_tar
+    `tar -tf #{@path.shellescape}`.split("\n")
   end
-  def files_txz(fn)
-    `tar -tf #{fn.shellescape}`.split("\n")
+  def files_txz
+    `tar -tf #{@path.shellescape}`.split("\n")
   end
-  def files_single_file(fn)
-    [File.basename(fn, File.extname(fn))]
+  def files_single_file
+    [File.basename(@path, File.extname(@path))]
   end
-  def unpack_rar(fn)
-    system "unrar", "x", fn
+
+  def unpack_rar
+    system "unrar", "x", @path
   end
-  def unpack_7z(fn)
-    system "7za", "x", fn
+  def unpack_7z
+    system "7za", "x", @path
   end
-  def unpack_tgz(fn)
-    system "tar", "-xzf", fn
+  def unpack_tgz
+    system "tar", "-xzf", @path
   end
-  def unpack_tbz2(fn)
-    system "tar", "-xjf", fn
+  def unpack_tbz2
+    system "tar", "-xjf", @path
   end
-  def unpack_txz(fn)
-    system "tar", "-xf", fn
+  def unpack_txz
+    system "tar", "-xf", @path
   end
-  def unpack_tar(fn)
-    system "tar", "-xf", fn
+  def unpack_tar
+    system "tar", "-xf", @path
   end
-  def unpack_single_file(fn)
-    system "7za", "x", fn
+  def unpack_single_file
+    system "7za", "x", @path
   end
 end
 
-opts = Trollop::options do
-  opt :keep, "Keep original archive even if unpacking was successful"
-  opt :dir, "Force unpacking into new directory even when all files are in one directory already"
+class UnarchiveCommand
+  def initialize
+    @opts = Trollop::options do
+      opt :keep, "Keep original archive even if unpacking was successful"
+      opt :dir, "Force unpacking into new directory even when all files are in one directory already"
+    end
+
+    if ARGV.empty?
+      STDERR.puts "Usage:\n  #{$0} [--keep] [--dir] archive1.zip archive2.rar archive3.7z"
+      exit 1
+    end
+    @paths = ARGV
+  end
+
+  def call
+    statuses = Hash.new{|ht,k| ht[k] = []}
+
+    @paths.each do |path|
+      ua = UnarchiveFile.new(path, @opts[:dir])
+      status = ua.call
+      statuses[status] << path
+    end
+
+    statuses.each do |status, files|
+      puts [status, *files].join(" ")
+      system "trash", *files if status == "OK" and not @opts[:keep]
+    end
+  end
 end
 
-if ARGV.empty?
-  STDERR.puts "Usage:\n  #{$0} [--keep] [--dir] archive1.zip archive2.rar archive3.7z"
-  exit 1
-end
-
-ua = Unarchiver.new
-ua.force_separate_dir = opts[:dir]
-
-ARGV.each do |fn|
-  ua.unarchive(fn)
-end
-ua.statuses.each do |status, files|
-  puts [status, *files].join(" ")
-  system "trash", *files if status == "OK" and not opts[:keep]
-end
+UnarchiveCommand.new.call
