@@ -30,22 +30,25 @@ class FlickrGetter
     end
   end
 
+  # https://www.flickr.com/services/api/flickr.photos.licenses.getInfo.html
   def licenses
     {
-      '0' => 'non-free',
-      '1' => 'cc-nc-sa',
-      '2' => 'cc-nc',
-      '3' => 'cc-nc-nd',
-      '4' => 'cc-by',
-      '5' => 'cc-sa',
-      '6' => 'cc-nd',
+      "0" => "non-free",
+      "1" => "cc-nc-sa",
+      "2" => "cc-nc",
+      "3" => "cc-nc-nd",
+      "4" => "cc-by",
+      "5" => "cc-sa",
+      "6" => "cc-nd",
+      "9" => "public-domain",
     }
   end
 
   def comment_from_getinfo(r)
     title      = r["photo"]["title"]["_content"]
     author     = r["photo"]["owner"]["username"]
-    license    = licenses[r["photo"]["license"]]
+    license_id = r["photo"]["license"]
+    license    = licenses[license_id] or raise "Unknown license #{license_id}"
     "#{title} by #{author} from flickr (#{license.upcase})"
   end
 
@@ -97,7 +100,7 @@ end
 
 
 opts = Trollop::options do
-  opt :out, "Directory to save files to", :default => "#{ENV['HOME']}/Downloads"
+  opt :out, "Directory to save files to", :default => "#{ENV["HOME"]}/Downloads"
 end
 
 fg = FlickrGetter.new(opts[:out])
