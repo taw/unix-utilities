@@ -3,7 +3,7 @@
 require "fileutils"
 require "rubygems"
 require "objectiveflickr"
-require "trollop"
+require "optimist"
 
 class FlickrGetter
   attr_reader :root_dir
@@ -98,8 +98,7 @@ class FlickrGetter
   end
 end
 
-
-opts = Trollop::options do
+opts = Optimist::options do
   opt :out, "Directory to save files to", :default => "#{ENV["HOME"]}/Downloads"
 end
 

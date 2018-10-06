@@ -4,7 +4,7 @@ require "pathname"
 require "shellwords"
 require "moneta"
 require "digest"
-require "trollop"
+require "optitist"
 
 class Pathname
   def shellescape
@@ -168,7 +168,7 @@ class MediaSizeReporter
   end
 end
 
-opts = Trollop::options do
+opts = Optimist::options do
   opt :empty, "Skip empty in report"
   opt :totals, "Print totals"
   opt :sorted, "Sort by size"

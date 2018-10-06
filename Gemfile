@@ -1,7 +1,7 @@
-source 'https://rubygems.org'
+source "https://rubygems.org"
 gem "rspec"
 gem "pry"
-gem "trollop"
+gem "optimist"
 gem "color"
 gem "rake"
 gem "nokogiri"

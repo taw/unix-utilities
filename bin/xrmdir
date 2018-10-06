@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-require 'fileutils'
+require "fileutils"
 require "pathname"
-require "trollop"
+require "optimist"
 
 def xrmdir(path)
   return if path.symlink?
@@ -30,7 +30,7 @@ def xrmdir(path)
   end
 end
 
-@opts = Trollop::options do
+@opts = Optimist::options do
   opt :verbose, "Be verbose"
   opt :recursive, "Remove empty subdirectories first"
 end

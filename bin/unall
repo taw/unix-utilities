@@ -2,7 +2,7 @@
 
 require "fileutils"
 require "shellwords"
-require "trollop"
+require "optimist"
 
 class UnarchiveFile
   Formats = {
@@ -123,7 +123,7 @@ end
 
 class UnarchiveCommand
   def initialize
-    @opts = Trollop::options do
+    @opts = Optimist::options do
       opt :keep, "Keep original archive even if unpacking was successful"
       opt :dir, "Force unpacking into new directory even when all files are in one directory already"
     end
