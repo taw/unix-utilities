@@ -405,6 +405,17 @@ If your distribution doesn't have it (or worse - has some total crap as `rename`
 do yourself a service and install something more sensible, and in the meantime copy this
 file to your `~/bin`.
 
+rjq
+---
+
+Runs ruby code on JSON. A hybrid of `ruby -ple` and `jq`.
+
+Data is in `$_` and whatever is in `$_` at the end gets pretty-printed as JSON.
+
+Usage:
+
+    curl -s 'https://dog.ceo/api/breeds/image/random' | rjq '$_=$_["message"]'
+
 rot13
 -----
 
@@ -487,7 +498,7 @@ Usage:
 swap
 ----
 
-Swaps files. If you pass more than 2 first will be moved to second etc. until last is moved to first. 
+Swaps files. If you pass more than 2 first will be moved to second etc. until last is moved to first.
 
 Usage:
 
