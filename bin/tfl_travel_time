@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby -W0
 
 require "uri"
 require "open-uri"
@@ -15,17 +15,14 @@ def parse_time(time)
   m
 end
 
+# We actually need URI.escape here, with " " becoming %20 not +
 def tfl_uri(from, to)
-  "https://api-argon.tfl.gov.uk/Journey/JourneyResults/#{URI.escape(from)}/to/#{URI.escape(to)}"
-end
-
-def doc(url)
-  Nokogiri(open(url).read)
+  "https://api.tfl.gov.uk/Journey/JourneyResults/#{URI.escape(from)}/to/#{URI.escape(to)}"
 end
 
 def travel_time(from, to)
   uri = tfl_uri(from, to)
-  data = JSON.parse(open(uri).read)
+  data = JSON.parse(URI.open(uri).read)
   data["journeys"].map{|j| j["duration"]}.min
 end
 
@@ -34,6 +31,6 @@ t = travel_time(from, to)
 if t
   puts t
 else
-  # system "open", tfl_uri(from, to)
+  system "open", tfl_uri(from, to)
   warn "Can't find travel time from `#{from}' to `#{to}'"
 end
