@@ -19,7 +19,7 @@ describe "gzip_stream" do
       fh.close_write
       b = fh.read
       # Data
-      expect(a.size).to be_between(1800, 1900)
+      expect(a.size).to be_between(1750, 1900)
       # Just finalization mark
       expect(b.size).to eq(9)
     end
