@@ -1,4 +1,6 @@
-#!/usr/bin/env ruby -W0
+#!/usr/bin/env ruby
+
+$VERBOSE = nil
 
 require "uri"
 require "open-uri"
