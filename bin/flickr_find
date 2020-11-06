@@ -1,3 +1,4 @@
 #!/usr/bin/env ruby
 
-system "open", "https://www.flickr.com/search/?text=#{ARGV.join('+')}&license=2%2C3%2C4%2C5%2C6%2C9"
+url = "https://www.flickr.com/search/?text=#{ARGV.join('+')}&license=2%2C3%2C4%2C5%2C6%2C9"
+system "open", url
