@@ -1,0 +1,72 @@
+#!/usr/bin/env ruby
+
+require "pry"
+
+class ToUTF8
+  def valid_ascii?
+    @data.force_encoding("ASCII").valid_encoding?
+  end
+
+  def valid_utf8?
+    @data.force_encoding("UTF-8").valid_encoding?
+  end
+
+  def has_utf8_bom?
+    @data[0,3].b == "\xEF\xBB\xBF".b
+  end
+
+  def has_utf16le_bom?
+    @data[0,2].b  == "\xFF\xFE".b
+  end
+
+  def has_utf16be_bom?
+    @data[0,2].b  == "\xFE\xFF".b
+  end
+
+  def strip_utf8_bom
+    @data = @data[3..-1]
+  end
+
+  def strip_utf16_bom
+    @data = @data[2..-1]
+  end
+
+  def guess_utf16le?
+    @data.unpack("v*").sum < @data.unpack("n*").sum
+  end
+
+  def convert_utf16le
+    @data = @data.force_encoding("UTF-16LE").encode("UTF-8")
+  end
+
+  def convert_utf16be
+    @data = @data.force_encoding("UTF-16BE").encode("UTF-8")
+  end
+
+  def call
+    @data = ARGF.read.b
+    if valid_ascii?
+      # we're done
+    elsif has_utf8_bom?
+      strip_utf8_bom
+    elsif valid_utf8?
+      # we're done
+    elsif has_utf16le_bom?
+      strip_utf16_bom
+      convert_utf16le
+    elsif has_utf16be_bom?
+      strip_utf16_bom
+      convert_utf16be
+    # Asssume it's some kind of UTF-16, which is honestly a bad assumption
+    # but it's good enough v1
+    elsif guess_utf16le?
+      convert_utf16le
+    else
+      convert_utf16be
+    end
+
+    print @data
+  end
+end
+
+ToUTF8.new.call

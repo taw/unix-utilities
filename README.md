@@ -540,6 +540,16 @@ Usage example:
 
 If the script doesn't get the answer, it opens the website (where you can disambiguate etc.)
 
+toutf8
+------
+
+Autodetects input format, and converts UTF8 / UTF16LE / UTF16BE with and without BOM into UTF8 without BOM. This allows use with Unix utilities.
+
+Usage example:
+
+    toutf8 <file.txt >fileout.txt
+    diff <(toutf8 <file1.txt) <(toutf8 <file2.txt)
+
 trash_size
 ----------
 
@@ -548,7 +558,6 @@ Shows size of your trash/recycle bin.
 Usage:
 
     trash_size
-
 
 unall
 -----
