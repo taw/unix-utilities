@@ -607,20 +607,6 @@ Usage example:
 
     xmlview huge_machine_generated_xml_file.xml
 
-
-xnorm
------
-
-A version of `namenorm` script which also removes random garbage from file names like ".x264".
-Useful mostly for TV episodes.
-
-Usage:
-
-    xnorm ~/Downloads/*
-
-It's included more as an example than as actually useful utilities since garbage they include
-in file names changes constantly.
-
 xpstree
 -------
 
