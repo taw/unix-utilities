@@ -45,6 +45,28 @@ class MediaFile < Pathname
   end
 
   def compute_duration
+    if extname.downcase == ".mp3"
+      # It seems more accurate
+      compute_duration_mp3info
+    else
+      compute_duration_exiftool
+    end
+  end
+
+  def compute_duration_mp3info
+    answer = `mp3info -p "%S" #{shellescape}`
+    if answer.empty?
+      # warn "Unknown size of #{@path}"
+      0
+    elsif answer =~ /\A\d+\s*\z/
+      answer.to_i
+    else
+      warn "Parse error: `#{answer}'"
+      0
+    end
+  end
+
+  def compute_duration_exiftool
     answer = `exiftool -n -s -Duration -PlayDuration #{shellescape}`.sub(" (approx)", "")
     if answer.empty?
       # warn "Unknown size of #{@path}"
