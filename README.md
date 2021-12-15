@@ -379,6 +379,15 @@ Usage:
 
     randswap <urls.txt | head -n 10 >sample.txt
 
+randsample
+--------
+
+Randomly samples lines of STDIN. Count is 1 by default.
+
+Usage:
+
+    seq 1 20 | randsample 1
+
 rbexe
 -----
 

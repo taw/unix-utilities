@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+if ARGV[0]
+  n = Integer(ARGV[0])
+else
+  n = 1
+end
+
+buf = STDIN.readlines.sample(n)
+buf.each do |line|
+  puts line
+end
