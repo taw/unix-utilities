@@ -437,15 +437,6 @@ Usage (either form works):
     cat file.txt | rot13 | rot13 > double_the_security.txt
 
 
-since_soup
-----------
-
-Link to soup posts starting from the post before one specified.
-
-Usage:
-
-    since_soup http://taw.soup.io/post/307955954/Image
-
 sortby
 ------
 
@@ -492,17 +483,6 @@ Exports sqlite database into a bunch of json files, one per table.
 Usage example:
 
     sqlite2json database.sqlite output/
-
-strip_9gag
-----------
-
-Removes extremely annoying 9gag watermark they put on files they didn't make.
-
-Usage:
-
-    strip_9gag file.jpg
-    strip_9gag http://some.site.example/file.jpg
-
 
 swap
 ----
