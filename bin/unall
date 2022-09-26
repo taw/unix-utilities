@@ -33,7 +33,6 @@ class UnarchiveFile
   end
 
   def call
-    return "Looking like multipart, skipping" if @path =~ /part/i
     fmt_ext = detect_format or return "Not supported"
     fmt, ext = fmt_ext
     if needs_directory?(fmt)
