@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+if ARGV.empty?
+  urls = STDIN.readlines.map(&:chomp).reject(&:empty?)
+else
+  urls = ARGV
+end
+
+system "open", "-na", "Google Chrome", "--args", "--incognito", *urls

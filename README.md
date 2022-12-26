@@ -249,6 +249,26 @@ Usage:
     namenorm ~/Downloads/*
 
 
+open_chrome
+-----------
+
+Opens a a list of URLs in Chrome. It can be passed either as arguments or on input, one per line.
+
+Usage:
+
+    open_chrome url1 url2 url3
+    cat urls.txt | open_chrome
+
+open_incognito
+--------------
+
+Opens a a list of URLs in Chrome, in incognito mode. It can be passed either as arguments or on input, one per line.
+
+Usage:
+
+    open_incognito url1 url2 url3
+    cat urls.txt | open_incognito
+
 open_youtube
 ------------
 
