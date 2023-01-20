@@ -26,6 +26,6 @@ end
 
 # Extra variable E_EDITOR in case you want EDITOR to be 'mate -w' or 'subl -w'
 # (for git/svn/etc.) but you don't want -w flag passed to e
-editor = ENV["E_EDITOR"] || ENV["EDITOR"] || "atom"
+editor = ENV["E_EDITOR"] || ENV["EDITOR"] || "code -w"
 cmd = Shellwords.split(editor) + args
 exec(*cmd)
