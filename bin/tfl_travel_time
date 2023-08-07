@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 
-$VERBOSE = nil
+# $VERBOSE = nil
 
+require "cgi"
 require "uri"
 require "open-uri"
 require "json"
@@ -19,7 +20,9 @@ end
 
 # We actually need URI.escape here, with " " becoming %20 not +
 def tfl_uri(from, to)
-  "https://api.tfl.gov.uk/Journey/JourneyResults/#{URI.escape(from)}/to/#{URI.escape(to)}"
+  from_esc = CGI.escape(from).gsub("+", "%20")
+  to_esc = CGI.escape(to).gsub("+", "%20")
+  "https://api.tfl.gov.uk/Journey/JourneyResults/#{from_esc}/to/#{to_esc}"
 end
 
 def travel_time(from, to)
