@@ -10,7 +10,7 @@ blocks:
       jobs:
         - name: bundle install
           commands:
-            - sudo apt install -y p7zip-full
+            - sudo apt install -y p7zip-full trash-cli
             - checkout
             - sem-version ruby 3.2.2
             - bundle install --path vendor/bundle
