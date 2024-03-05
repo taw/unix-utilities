@@ -17,12 +17,12 @@ Cache = Moneta.new(:PStore, file: "#{ENV["HOME"]}/.media_size.cache")
 class MediaFile < Pathname
   def media_file?
     case extname.downcase
-    when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf]
+    when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf .m4b]
       true
     when *%W[.sub .txt .jpg .png .srt .nfo .pdf .m3u], ""
       false
     else
-      `file -Ib #{@path.shellescape}` =~ %r[\A(audio|video)/]
+      `file --mime-type -b #{@path.shellescape}` =~ %r[\A(audio|video)/]
     end
   end
 
