@@ -19,7 +19,7 @@ class MediaFile < Pathname
     case extname.downcase
     when *%W[.mp4 .avi .flv .mp3 .mpg .mkv .flv .wmv .asf .m4b]
       true
-    when *%W[.sub .txt .jpg .png .srt .nfo .pdf .m3u], ""
+    when *%W[.sub .txt .jpg .png .srt .nfo .pdf .m3u .doc .mobi .gif .cue], ""
       false
     else
       `file --mime-type -b #{@path.shellescape}` =~ %r[\A(audio|video)/]
@@ -34,7 +34,9 @@ class MediaFile < Pathname
     @cache_key ||= [try_realpath.to_s, size, mtime.to_i]
   end
 
-  # For media files we cache fails as 0, since answer won't change
+  # For local media files fails tend to be permanent
+  # so we could cache them, but if you have network-mounted files
+  # then temporary failures are possible and can be retried
   def duration
     cached = Cache[cache_key]
     return cached if cached
@@ -131,10 +133,12 @@ class MediaDirectory < Pathname
   def media_files
     unless @media_files
       @media_files = []
-      find do |file|
-        next if file.directory?
-        file = MediaFile.new(file)
-        @media_files << file if file.media_file?
+      retry_on_eintr do
+        find do |file|
+          next if file.directory?
+          file = MediaFile.new(file)
+          @media_files << file if file.media_file?
+        end
       end
     end
     @media_files
@@ -142,6 +146,16 @@ class MediaDirectory < Pathname
 
   def duration
     @duration ||= media_files.map(&:duration).inject(0, &:+)
+  end
+
+  # It is absolute bullshit that neither sshfs, fuse, nor ruby handles it automatically
+  # and we have to do this in-app, but this is necessary for media_size to work over sshfs
+  def retry_on_eintr
+    5.times do
+      return yield
+    rescue Errno::EINTR
+      warn "EINTR, retrying"
+    end
   end
 end
 
