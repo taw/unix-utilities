@@ -3,7 +3,12 @@
 require "color"
 
 def set_tab_background(color_name)
-  color = Color::CSS[color_name]
+  begin
+    color = Color::RGB.by_name(color_name)
+  rescue
+    warn "Unknown color #{color_name}"
+    return
+  end
   print "\e]6;1;bg;red;brightness;#{color.red.round}\a"
   print "\e]6;1;bg;green;brightness;#{color.green.round}\a"
   print "\e]6;1;bg;blue;brightness;#{color.blue.round}\a"

@@ -5,11 +5,18 @@ describe "terminal_title" do
     expect(`#{binary} test`).to eq("\e]0;test\a")
   end
 
-  it "handles colors by their CSS name" do
+  it "handles colors by their name" do
     expect(`#{binary} -c pink test`).to eq(
       "\e]6;1;bg;red;brightness;255\a"+
       "\e]6;1;bg;green;brightness;192\a"+
       "\e]6;1;bg;blue;brightness;203\a"+
+      "\e]0;test\a"
+    )
+  end
+
+  it "handles colors by their name" do
+    expect(`#{binary} -c rainbow test 2>&1`).to eq(
+      "Unknown color rainbow\n"+
       "\e]0;test\a"
     )
   end
