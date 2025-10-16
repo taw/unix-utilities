@@ -72,7 +72,7 @@ class MediaFile < Pathname
   end
 
   def compute_duration_exiftool
-    answer = `exiftool -n -s -Duration -PlayDuration #{shellescape}`.sub(" (approx)", "")
+    answer = `exiftool -m -api LargeFileSupport -n -s -Duration -PlayDuration #{shellescape}`.sub(" (approx)", "")
     if answer.empty?
       # warn "Unknown size of #{@path}"
       0
