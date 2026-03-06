@@ -193,7 +193,7 @@ class MediaSizeReporter
 
   def each_dir(&blk)
     if @sorted
-      @dirs.sort_by(&:duration).each(&blk)
+      @dirs.sort_by{|dir| [dir.duration, dir.to_s]}.each(&blk)
     else
       @dirs.each(&blk)
     end
