@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby
 
-require "pry"
-
 class ToUTF8
   def valid_ascii?
     @data.force_encoding("ASCII").valid_encoding?

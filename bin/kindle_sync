@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require "pathname"
+require "fileutils"
 
 class Pathname
   def without_extname

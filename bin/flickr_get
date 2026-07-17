@@ -80,7 +80,7 @@ class FlickrGetter
     url      = url_from_getsizes(r2)
 
     if url
-      if File.exists?(filename)
+      if File.exist?(filename)
         puts comment
         puts "Already exists: #{filename}"
       else
