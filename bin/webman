@@ -10,10 +10,7 @@ require "shellwords"
 module URI
   def self.for_form(base, args={})
     uri = URI.parse(base)
-    unless args.empty?
-      # uri.query = URI.encode_www_form(args) # 1.9 only
-      uri.query = args.map{|k,v| "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}"}.join("&")
-    end
+    uri.query = URI.encode_www_form(args) unless args.empty?
     uri
   end
 end
@@ -23,8 +20,6 @@ class Pathname
     exist? and not zero?
   end
 
-  # Removing Pathname#to_str in 1.9 was dumb, bringing it back
-  alias_method :to_str, :to_s
   def shellescape
     to_s.shellescape
   end
@@ -79,13 +74,13 @@ class ManPage
   def display_terminal
     ensure_fetched
     with_terminal_title(term_title) do
-      system "man", cache_path
+      system "man", cache_path.to_s
     end
   end
   def display_browser
     begin
       ensure_html
-      system "open", html_path
+      system "open", html_path.to_s
     rescue
       system "open", google_url.to_s
     end

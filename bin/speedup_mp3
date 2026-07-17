@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require "pp"
 require "shellwords"
 require "pathname"
 require "fileutils"

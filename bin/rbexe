@@ -3,25 +3,21 @@
 require "fileutils"
 
 types = {
-  'ruby'       => "#!/usr/bin/env ruby",
-  'ruby1.8'    => "#!/usr/bin/env ruby1.8",
-  'ruby1.9'    => "#!/usr/bin/env ruby1.9",
-  'python'     => "#!/usr/bin/env python",
-  'python2'    => "#!/usr/bin/env python2",
-  'python3'    => "#!/usr/bin/env python3",
-  'perl'       => "#!/usr/bin/perl",
-  'bash'       => "#!/bin/bash",
+  "ruby"       => "#!/usr/bin/env ruby",
+  "python"     => "#!/usr/bin/env python",
+  "python2"    => "#!/usr/bin/env python2",
+  "python3"    => "#!/usr/bin/env python3",
+  "perl"       => "#!/usr/bin/perl",
+  "bash"       => "#!/bin/bash",
 }
-types['rb']  = types['ruby']
-types['8']   = types['rb8'] = types['ruby1.8']
-types['9']   = types['rb9'] = types['ruby1.9']
-types['py']  = types['python']
-types['py2'] = types['python2']
-types['py3'] = types['python3']
-types['pl']  = types['perl']
-types['sh']  = types['bash']
+types["rb"]  = types["ruby"]
+types["py"]  = types["python"]
+types["py2"] = types["python2"]
+types["py3"] = types["python3"]
+types["pl"]  = types["perl"]
+types["sh"]  = types["bash"]
 
-type = 'ruby'
+type = "ruby"
 if ARGV[0] =~ /\A--?(.*)/
   ARGV.shift
   type = $1

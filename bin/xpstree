@@ -1,30 +1,6 @@
 #!/usr/bin/env ruby
 
 ###############
-# Support for older versions of Ruby
-unless [].respond_to?(:group_by)
-  class Array
-    def group_by
-      hsh = {}
-      each do |element|
-        key = yield(element)
-        hsh[key] ||= []
-        hsh[key] << element
-      end
-      hsh
-    end
-  end
-end
-
-unless :x.respond_to?(:to_proc)
-  class Symbol
-    def to_proc
-      proc{|obj, *args| obj.send(self, *args)}
-    end
-  end
-end
-
-###############
 # Core extensions
 class Class
   def cached(*vars)

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require "rubygems"
+# hpricot doesn't even install on modern ruby versions
 require "pathname"
 require "hpricot"
 
@@ -63,13 +63,13 @@ def process_gplus_takeout!(stream_dir, output_html)
     docs.sort_by(&:published).reverse.each do |doc|
       fh.puts "<h3><a href='#{doc.permalink}'>#{doc.published_pretty}</a></h3>"
       fh.puts doc.content
-      doc.attachments.each{|at|
+      doc.attachments.each do |at|
         fh.puts at
       end
     end
     fh.puts "</body>"
     fh.puts "</html>"
-  }
+  end
 end
 
 unless ARGV.size == 2

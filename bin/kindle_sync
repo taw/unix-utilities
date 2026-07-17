@@ -6,9 +6,6 @@ class Pathname
   def without_extname
     Pathname(to_s.chomp(extname))
   end
-  def to_str
-    to_s
-  end
 end
 
 class Hash
