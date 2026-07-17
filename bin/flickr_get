@@ -59,13 +59,6 @@ class FlickrGetter
     "#{root_dir}/#{title_fn}_by_#{author_fn}_from_flickr_#{license}.#{format}"
   end
 
-  def url_from_getinfo(r)
-    server_id = r["photo"]["server"]
-    secret    = r["photo"]["originalsecret"]
-    farm      = r["photo"]["farm"]
-    "http://farm#{farm}.static.flickr.com/#{server_id}/#{photo_id}_#{secret}_o.#{format}"
-  end
-
   def url_from_getsizes(r)
     r["sizes"]["size"].max_by{|x| x["width"].to_i}["source"]
   end

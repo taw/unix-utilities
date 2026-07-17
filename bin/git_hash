@@ -7,11 +7,8 @@ def git_hash(dir)
     tree = []
     tree << ["/submodules", `git submodule`.split(/\n/).sort]
     `git ls-files`.split(/\n/).each do |path|
-      if File.directory?(path)
-        next 
-      else
-        tree << [path, Digest::SHA1.hexdigest(File.read(path))]
-      end
+      next if File.directory?(path)
+      tree << [path, Digest::SHA1.hexdigest(File.read(path))]
     end
     Digest::SHA1.hexdigest(tree.sort.inspect)
   end

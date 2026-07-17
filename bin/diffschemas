@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 def read_schema(file_name)
   scm = File.read(file_name)
@@ -10,6 +10,11 @@ def read_schema(file_name)
   scm.gsub!(/ USING BTREE\b/, "")
   scm.gsub!(/[ \t]+/, " ")
   scm
+end
+
+unless ARGV.size == 2
+  STDERR.puts "Usage: #{$0} schema1.sql schema2.sql"
+  exit 1
 end
 
 schema_one = read_schema(ARGV[0])

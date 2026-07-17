@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-require "thread"
 require "zlib"
 
 def gzip_stream(io_in, io_out, flush_freq)
