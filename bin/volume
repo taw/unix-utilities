@@ -19,7 +19,12 @@ case ARGV.size
 when 0
   puts get_volume
 when 1
-  set_volume! ARGV[0].to_f
+  volume = Float(ARGV[0]) rescue nil
+  unless volume
+    STDERR.puts "Volume must be a number, got: #{ARGV[0]}"
+    exit 1
+  end
+  set_volume! volume
 else
   STDERR.puts "Usage: #{$0} volume # set new volume (0 to 100)"
   STDERR.puts "       #{$0}        # print current volume"

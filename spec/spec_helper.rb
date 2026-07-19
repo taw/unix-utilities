@@ -28,7 +28,7 @@ class MockUnix
     cmd_path = @bin_path+name
     cmd_path.open("w", 0755) do |fh|
       fh.puts "#!/usr/bin/env ruby"
-      fh.puts "open(#{ command_trace_path('open').to_s.inspect }, 'a'){|fh| fh.puts ARGV.inspect}"
+      fh.puts "open(#{ command_trace_path(name).to_s.inspect }, 'a'){|fh| fh.puts ARGV.inspect}"
     end
   end
 
