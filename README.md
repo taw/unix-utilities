@@ -586,7 +586,7 @@ Usage:
 
     unall *.zip *.rar *.7z *.tar.bz2 *.tar.gz
 
-`unall` assumes you have `7za`, `unrar`, and sane version of `tar` installed.
+`unall` assumes you have `7zz` (from brew `sevenzip` package) and a sane version of `tar` installed.
 
 volume
 ------

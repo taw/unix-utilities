@@ -1,6 +1,12 @@
 describe "unall" do
   let(:binary) { Pathname(__dir__)+"../bin/unall" }
 
+  def self.have_command?(cmd)
+    ENV["PATH"].split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}
+  end
+
+  SevenZip = %w[7zz 7z].find{|cmd| have_command?(cmd)}
+
   def create_archive
     File.write("a.txt", "hello")
     File.write("b.txt", "world")
@@ -19,10 +25,20 @@ describe "unall" do
     it "unzips archives in #{format} format" do
       MockUnix.new do |env|
         create_archive do
-          system "7za a foo.#{format} a.txt b.txt >/dev/null"
+          system "#{SevenZip} a foo.#{format} a.txt b.txt >/dev/null"
         end
         unpacks_and_deletes_archive binary, "foo.#{format}"
       end
+    end
+  end
+
+  # Only creating the archive needs `rar`, unpacking goes through 7zip
+  it "unzips archives in rar format", skip: !have_command?("rar") do
+    MockUnix.new do |env|
+      create_archive do
+        system "rar a foo.rar a.txt b.txt >/dev/null"
+      end
+      unpacks_and_deletes_archive binary, "foo.rar"
     end
   end
 
@@ -47,7 +63,7 @@ describe "unall" do
   it "unzips archives in .zip format even with nonstandard extension" do
     MockUnix.new do |env|
       create_archive do
-        system "7za a foo.zip a.txt b.txt >/dev/null"
+        system "#{SevenZip} a foo.zip a.txt b.txt >/dev/null"
         system "mv foo.zip foo.wtf"
       end
       unpacks_and_deletes_archive binary, "foo.wtf"

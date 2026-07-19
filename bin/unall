@@ -15,6 +15,13 @@ class UnarchiveFile
     :single_file => %w[.gz .bz2 .xz],
   }
 
+  # OSX has multiple 7zip packages - `sevenzip` provides `7zz`, `p7zip` provides `7z`.
+  def sevenzip
+    @sevenzip ||= %w[7zz 7z].find{|cmd|
+      ENV["PATH"].split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}
+    } || raise("Neither `7zz` nor `7z` found in PATH")
+  end
+
   def formats
     @formats ||= Formats.map{|fmt, exts| exts.map{|ext| [fmt, ext]}}.flatten(1)
   end
@@ -75,48 +82,60 @@ class UnarchiveFile
   end
 
   def files_rar
-    `unrar vb #{@path.shellescape}`.split("\n")
+    files_7z
   end
+
   def files_7z
     # First is archive name
-    `7za l -slt #{@path.shellescape}`.scan(/^Path = (.*)/).flatten[1..-1]
+    `#{sevenzip} l -slt #{@path.shellescape}`.scan(/^Path = (.*)/).flatten[1..-1]
   end
+
   def files_tgz
     `tar -tzf #{@path.shellescape}`.split("\n")
   end
+
   def files_tbz2
     `tar -tjf #{@path.shellescape}`.split("\n")
   end
+
   def files_tar
     `tar -tf #{@path.shellescape}`.split("\n")
   end
+
   def files_txz
     `tar -tf #{@path.shellescape}`.split("\n")
   end
+
   def files_single_file
     [File.basename(@path, File.extname(@path))]
   end
 
   def unpack_rar
-    system "unrar", "x", @path
+    unpack_7z
   end
+
   def unpack_7z
-    system "7za", "x", @path
+    system sevenzip, "x", @path
   end
+
   def unpack_tgz
     system "tar", "-xzf", @path
   end
+
   def unpack_tbz2
     system "tar", "-xjf", @path
   end
+
   def unpack_txz
     system "tar", "-xf", @path
   end
+
   def unpack_tar
     system "tar", "-xf", @path
   end
+
   def unpack_single_file
-    system "7za", "x", @path
+    unpack_7z
   end
 end
 
