@@ -60,6 +60,29 @@ describe "unall" do
     end
   end
 
+  def reports_empty_archive(binary, name)
+    output = `"#{binary}" "#{name}" 2>&1`
+    expect($?.success?).to eq(true)
+    expect(output).to eq("Empty #{name}\n")
+    # Nothing was unpacked, and the archive itself is still there
+    files = Pathname(".").find.select(&:file?).reject{|n| n.to_s =~ /.DS_Store/}.map(&:to_s)
+    expect(files).to eq([name])
+  end
+
+  it "reports empty archives in tar format instead of crashing" do
+    MockUnix.new do |env|
+      system "tar cf foo.tar -T /dev/null"
+      reports_empty_archive binary, "foo.tar"
+    end
+  end
+
+  it "reports empty archives in 7z format instead of crashing" do
+    MockUnix.new do |env|
+      system "#{SevenZip} a foo.7z -stl . >/dev/null"
+      reports_empty_archive binary, "foo.7z"
+    end
+  end
+
   it "unzips archives in .zip format even with nonstandard extension" do
     MockUnix.new do |env|
       create_archive do

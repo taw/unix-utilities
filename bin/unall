@@ -42,7 +42,10 @@ class UnarchiveFile
   def call
     fmt_ext = detect_format or return "Not supported"
     fmt, ext = fmt_ext
-    if needs_directory?(fmt)
+    # Empty listing means either an empty archive, or a helper binary which failed
+    files = Array(send("files_#{fmt}"))
+    return "Empty" if files.empty?
+    if needs_directory?(files)
       dnx = create_directory(basename[0...-ext.size])
       Dir.chdir(dnx){ send("unpack_#{fmt}") ? "OK" : "FAIL" }
     else
@@ -61,12 +64,11 @@ class UnarchiveFile
     return dnx
   end
 
-  def needs_directory?(fmt)
+  def needs_directory?(files)
     return true if @force_separate_dir
-    prefixes = send("files_#{fmt}").map{|f| f.sub(/\/.*/, "")}.uniq.select{|f| f != ""}
-    return true if prefixes.size > 1
-    return true if File.exist?(prefixes[0])
-    false
+    prefixes = files.map{|f| f.sub(/\/.*/, "")}.uniq.select{|f| f != ""}
+    return true unless prefixes.size == 1
+    File.exist?(prefixes[0])
   end
 
   def detect_format
