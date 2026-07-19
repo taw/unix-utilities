@@ -6,7 +6,7 @@ require "nokogiri"
 class Numeric
   def time_pp
     s = self.to_i
-    return "#{self}s" if s < 60
+    return "#{s}s" if s < 60
 
     m = (s / 60).to_i
     s -= m*60
