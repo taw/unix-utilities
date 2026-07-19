@@ -22,7 +22,7 @@ class MediaFile < Pathname
     when *%W[.sub .txt .jpg .png .srt .nfo .pdf .m3u .doc .mobi .gif .cue], ""
       false
     else
-      `file --mime-type -b #{@path.shellescape}` =~ %r[\A(audio|video)/]
+      `file --mime-type -b #{to_s.shellescape}` =~ %r[\A(audio|video)/]
     end
   end
 
@@ -61,7 +61,7 @@ class MediaFile < Pathname
   def compute_duration_mp3info
     answer = `mp3info -p "%S" #{shellescape}`
     if answer.empty?
-      # warn "Unknown size of #{@path}"
+      # warn "Unknown size of #{self}"
       0
     elsif answer =~ /\A\d+\s*\z/
       answer.to_i
@@ -74,7 +74,7 @@ class MediaFile < Pathname
   def compute_duration_exiftool
     answer = `exiftool -m -api LargeFileSupport -n -s -Duration -PlayDuration #{shellescape}`.sub(" (approx)", "")
     if answer.empty?
-      # warn "Unknown size of #{@path}"
+      # warn "Unknown size of #{self}"
       0
     elsif answer =~ /\A(?:Track|Play)?Duration\s*:\s*(\d+\.?\d*)\s*\z/
       $1.to_i
