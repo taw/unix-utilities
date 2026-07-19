@@ -14,7 +14,7 @@ class Sqlite2JSON
   end
 
   def tables
-    @tables ||= @db.execute("SELECT name FROM sqlite_master WHERE type='table'").flatten.sort
+    @tables ||= @db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").flatten.sort
   end
 
   def run!
