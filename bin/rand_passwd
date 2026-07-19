@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
+require "securerandom"
+
 # 56.4 bits of entropy
+# Kernel#rand is a Mersenne Twister - its output is predictable from
+# previous outputs, so passwords need a CSPRNG instead
 c = ("a".."z").to_a
-puts (0...12).map{ c[rand(c.size)] }.join
+puts (0...12).map{ c[SecureRandom.random_number(c.size)] }.join
