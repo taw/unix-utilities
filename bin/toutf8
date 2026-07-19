@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 
 class ToUTF8
+  def has_nul_bytes?
+    @data.include?("\0".b)
+  end
+
   def valid_ascii?
     @data.force_encoding("ASCII").valid_encoding?
   end
@@ -43,11 +47,11 @@ class ToUTF8
 
   def call
     @data = ARGF.read.b
-    if valid_ascii?
+    if !has_nul_bytes? and valid_ascii?
       # we're done
     elsif has_utf8_bom?
       strip_utf8_bom
-    elsif valid_utf8?
+    elsif !has_nul_bytes? and valid_utf8?
       # we're done
     elsif has_utf16le_bom?
       strip_utf16_bom

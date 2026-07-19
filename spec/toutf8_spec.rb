@@ -58,4 +58,20 @@ describe "toutf8" do
       expect(output).to eq("Żółw błotny.\n")
     end
   end
+
+  # NUL bytes are valid US-ASCII, so BOM-less UTF-16 holding only ASCII
+  # characters passes the valid_ascii? fast path and is emitted unchanged.
+  context "UTF-16-BE without BOM, ASCII-only content" do
+    let(:file) { "utf16be_ascii" }
+    it "converts to UTF-8 without BOM" do
+      expect(output).to eq("All your base are belong to us.\n")
+    end
+  end
+
+  context "UTF-16-LE without BOM, ASCII-only content" do
+    let(:file) { "utf16le_ascii" }
+    it "converts to UTF-8 without BOM" do
+      expect(output).to eq("All your base are belong to us.\n")
+    end
+  end
 end
