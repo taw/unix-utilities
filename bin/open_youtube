@@ -2,6 +2,10 @@
 
 ARGV.each do |path|
   # This might not be the most reliable Youtube ID extraction regexp ever
-  youtube_id = File.basename(path).sub(/\.[^\.]+\z/, "")[/.{11}\z/]
+  youtube_id = File.basename(path).sub(/\.[^\.]+\z/, "")[/[A-Za-z0-9_-]{11}\z/]
+  unless youtube_id
+    warn "No Youtube ID found in `#{path}', skipping"
+    next
+  end
   system "open", "https://www.youtube.com/watch?v=#{youtube_id}"
 end
