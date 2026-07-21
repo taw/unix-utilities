@@ -30,31 +30,47 @@ class FlickrGetter
   end
 
   # https://www.flickr.com/services/api/flickr.photos.licenses.getInfo.html
+  # Codes 0-9 are the original list, 11-16 were added when flickr started
+  # offering CC 4.0. Slugs for the old codes are kept as they were, so files
+  # downloaded by earlier versions are still recognized as already downloaded.
   def licenses
     {
-      "0" => "non-free",
-      "1" => "cc-nc-sa",
-      "2" => "cc-nc",
-      "3" => "cc-nc-nd",
-      "4" => "cc-by",
-      "5" => "cc-sa",
-      "6" => "cc-nd",
-      "9" => "public-domain",
+      "0"  => "non-free",
+      "1"  => "cc-nc-sa",
+      "2"  => "cc-nc",
+      "3"  => "cc-nc-nd",
+      "4"  => "cc-by",
+      "5"  => "cc-sa",
+      "6"  => "cc-nd",
+      "7"  => "no-known-restrictions",
+      "8"  => "us-government-work",
+      "9"  => "public-domain",
+      "10" => "public-domain-mark",
+      "11" => "cc-by-4.0",
+      "12" => "cc-sa-4.0",
+      "13" => "cc-nd-4.0",
+      "14" => "cc-nc-4.0",
+      "15" => "cc-nc-sa-4.0",
+      "16" => "cc-nc-nd-4.0",
     }
+  end
+
+  # photos.getInfo reports the license as a string, licenses.getInfo as a number
+  def license_name(license_id)
+    licenses[license_id.to_s] or raise "Unknown license #{license_id.inspect}"
   end
 
   def comment_from_getinfo(r)
     title      = r["photo"]["title"]["_content"]
     author     = r["photo"]["owner"]["username"]
-    license_id = r["photo"]["license"]
-    license    = licenses[license_id] or raise "Unknown license #{license_id}"
+    license    = license_name(r["photo"]["license"])
     "#{title} by #{author} from flickr (#{license.upcase})"
   end
 
   def filename_from_getinfo(r)
     title_fn   = r["photo"]["title"]["_content"].downcase.gsub(/ /,"_").gsub(/[^a-z0-9_]/,"")
     author_fn  = r["photo"]["owner"]["username"].downcase.gsub(/ /,"_").gsub(/[^a-z0-9_]/,"")
-    license    = licenses[r["photo"]["license"]]
+    license    = license_name(r["photo"]["license"])
     format     = r["photo"]["originalformat"] || "jpg"
     "#{root_dir}/#{title_fn}_by_#{author_fn}_from_flickr_#{license}.#{format}"
   end
