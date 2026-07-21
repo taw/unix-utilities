@@ -1,13 +1,9 @@
 #!/usr/bin/env ruby
 
-def File.same_file?(a,b)
-  File.stat(a) == File.stat(b)
-end
-
 def File.namenorm(fn)
   nfn = fn.tr("A-Z '", "a-z_")
   return if fn == nfn
-  if !File.exist?(nfn) or File.same_file?(fn,nfn)
+  if !File.exist?(nfn) or File.identical?(fn, nfn)
     File.rename(fn, nfn)
   else
     warn "Already exists, skipping: #{nfn}"
