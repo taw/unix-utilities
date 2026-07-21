@@ -5,11 +5,15 @@ require "zlib"
 def gzip_stream(io_in, io_out, flush_freq)
   fh = Zlib::GzipWriter.wrap(io_out)
   lock = Mutex.new
+  # Zlib raises BufError if asked to flush with nothing pending
+  unflushed = false
   Thread.new do
-    while true
+    until fh.closed?
       lock.synchronize do
-        return if fh.closed?
-        fh.flush if fh.pos > 0
+        if unflushed and !fh.closed?
+          fh.flush
+          unflushed = false
+        end
       end
       sleep flush_freq
     end
@@ -17,6 +21,7 @@ def gzip_stream(io_in, io_out, flush_freq)
   io_in.each do |line|
     lock.synchronize do
       fh.print(line)
+      unflushed = true
     end
   end
   lock.synchronize do
