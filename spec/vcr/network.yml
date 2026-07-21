@@ -786,4 +786,179 @@ http_interactions:
         Tfl.Api.Presentation.Entities","date":"20260720","time":"0300","timeIs":"departing","uri":"/journey/journeyresults/ec1v%201ne/to/w1j%209hd?time=0300&date=20260720&timeIs=departing"}}},"journeyVector":{"$type":"Tfl.Api.Presentation.Entities.JourneyPlanner.JourneyVector,
         Tfl.Api.Presentation.Entities","from":"EC1V1NE","to":"W1J9HD","via":"","uri":"/journey/journeyresults/ec1v%201ne/to/w1j%209hd"}}'
   recorded_at: Sun, 19 Jul 2026 08:36:07 GMT
+- request:
+    method: get
+    uri: https://api.flickr.com/services/rest/?api_key=0309264c0827bdb4ebcbff7c5b4a14a3&format=json&method=flickr.photos.getInfo&nojsoncallback=1&photo_id=6752498919
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - api.flickr.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Date:
+      - Tue, 21 Jul 2026 08:01:53 GMT
+      X-Server:
+      - serverless-proxy-10.78.20.47
+      Server:
+      - openresty
+      Vary:
+      - Accept-Encoding
+      X-Flickr-Api-Request:
+      - Root=1-6a5f2770-2c95b085365f07d92000f554
+      X-Content-Type-Options:
+      - nosniff
+      Set-Cookie:
+      - ccc=%7B%22needsConsent%22%3Atrue%2C%22managed%22%3A0%2C%22changed%22%3A0%2C%22info%22%3A%7B%22cookieBlock%22%3A%7B%22level%22%3A0%2C%22blockRan%22%3A0%7D%7D%7D;
+        expires=Thu, 20-Aug-2026 08:01:52 GMT; Max-Age=2592000; path=/; domain=.flickr.com
+      - ccc=%7B%22needsConsent%22%3Atrue%2C%22managed%22%3A0%2C%22changed%22%3A0%2C%22info%22%3A%7B%22cookieBlock%22%3A%7B%22level%22%3A0%2C%22blockRan%22%3A1%7D%7D%7D;
+        expires=Thu, 20-Aug-2026 08:01:52 GMT; Max-Age=2592000; path=/; domain=.flickr.com
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 56bcb1c1746cc96cff5943a0f457e6b0.cloudfront.net (CloudFront)
+      X-Amz-Cf-Pop:
+      - LHR5-P1
+      X-Amz-Cf-Id:
+      - ffDrUe49Vv6XL6KQWTw_V3AfvEdhyGyjaSseS8h6984NPlZ_UZfnaA==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"photo":{"id":"6752498919","secret":"d7859e3a3a","server":"7020","farm":8,"dateuploaded":"1327371280","isfavorite":0,"license":"1","safety_level":"0","rotation":0,"originalsecret":"066c81308f","originalformat":"jpg","owner":{"nsid":"28338629@N06","username":"naikaklutz","realname":"Nica
+        Silva","location":"PHILIPPINES","iconserver":"7162","iconfarm":8,"path_alias":"naikaklutz","gift":{"gift_eligible":true,"eligible_durations":["year","month","week"],"new_flow":true}},"title":{"_content":"Cat"},"description":{"_content":"Pet
+        shop at Robinson''s Galleria you can per the cats there. :D"},"visibility":{"ispublic":1,"isfriend":0,"isfamily":0},"dates":{"posted":"1327371280","taken":"2012-01-18
+        23:43:05","takengranularity":0,"takenunknown":0,"lastupdate":"1588615773"},"views":"2336","editability":{"cancomment":0,"canaddmeta":0},"publiceditability":{"cancomment":1,"canaddmeta":0},"usage":{"candownload":1,"canblog":0,"canshare":1},"comments":{"_content":"0"},"notes":{"note":[]},"people":{"haspeople":0},"tags":{"tag":[{"id":"28293307-6752498919-1344","author":"28338629@N06","authorname":"naikaklutz","raw":"cat","_content":"cat","machine_tag":0},{"id":"28293307-6752498919-7869","author":"28338629@N06","authorname":"naikaklutz","raw":"kitty","_content":"kitty","machine_tag":0},{"id":"28293307-6752498919-559","author":"28338629@N06","authorname":"naikaklutz","raw":"cute","_content":"cute","machine_tag":0}]},"urls":{"url":[{"type":"photopage","_content":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/"}]},"media":"photo"},"stat":"ok"}'
+  recorded_at: Tue, 21 Jul 2026 08:01:53 GMT
+- request:
+    method: get
+    uri: https://api.flickr.com/services/rest/?api_key=0309264c0827bdb4ebcbff7c5b4a14a3&format=json&method=flickr.photos.getSizes&nojsoncallback=1&photo_id=6752498919
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - api.flickr.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Date:
+      - Tue, 21 Jul 2026 08:01:53 GMT
+      X-Server:
+      - serverless-proxy-10.78.21.91
+      Server:
+      - openresty
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Flickr-Api-Request:
+      - Root=1-6a5f2771-7dfa9b35418b617221b99007
+      Set-Cookie:
+      - ccc=%7B%22needsConsent%22%3Atrue%2C%22managed%22%3A0%2C%22changed%22%3A0%2C%22info%22%3A%7B%22cookieBlock%22%3A%7B%22level%22%3A0%2C%22blockRan%22%3A0%7D%7D%7D;
+        expires=Thu, 20-Aug-2026 08:01:53 GMT; Max-Age=2592000; path=/; domain=.flickr.com
+      - ccc=%7B%22needsConsent%22%3Atrue%2C%22managed%22%3A0%2C%22changed%22%3A0%2C%22info%22%3A%7B%22cookieBlock%22%3A%7B%22level%22%3A0%2C%22blockRan%22%3A1%7D%7D%7D;
+        expires=Thu, 20-Aug-2026 08:01:53 GMT; Max-Age=2592000; path=/; domain=.flickr.com
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 5a98aec7da8cddc4fee7bc85f8beb31a.cloudfront.net (CloudFront)
+      X-Amz-Cf-Pop:
+      - LHR5-P1
+      X-Amz-Cf-Id:
+      - pCLsQYP_08u-GyWzK3VFZzUzquKL9bSpQ6XAhENJp7QGM-r7qTz4Gw==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"sizes":{"canblog":0,"candownload":1,"size":[{"label":"Square","width":75,"height":75,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a_s.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/sq\/","media":"photo"},{"label":"Large
+        Square","width":150,"height":150,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a_q.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/q\/","media":"photo"},{"label":"Thumbnail","width":100,"height":67,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a_t.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/t\/","media":"photo"},{"label":"Small","width":240,"height":160,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a_m.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/s\/","media":"photo"},{"label":"Small
+        320","width":320,"height":213,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a_n.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/n\/","media":"photo"},{"label":"Small
+        400","width":400,"height":266,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a_w.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/w\/","media":"photo"},{"label":"Medium","width":500,"height":333,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/m\/","media":"photo"},{"label":"Medium
+        640","width":640,"height":426,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a_z.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/z\/","media":"photo"},{"label":"Medium
+        800","width":800,"height":533,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a_c.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/c\/","media":"photo"},{"label":"Large","width":1024,"height":682,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_d7859e3a3a_b.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/l\/","media":"photo"},{"label":"Large
+        1600","width":1600,"height":1065,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_860fa1e2e9_h.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/h\/","media":"photo"},{"label":"Large
+        2048","width":2048,"height":1364,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_1c8305d6b9_k.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/k\/","media":"photo"},{"label":"Original","width":3088,"height":2056,"source":"https:\/\/live.staticflickr.com\/7020\/6752498919_066c81308f_o.jpg","url":"https:\/\/www.flickr.com\/photos\/naikaklutz\/6752498919\/sizes\/o\/","media":"photo"}]},"stat":"ok"}'
+  recorded_at: Tue, 21 Jul 2026 08:01:53 GMT
+- request:
+    method: get
+    uri: https://api.flickr.com/services/rest/?api_key=0309264c0827bdb4ebcbff7c5b4a14a3&format=json&method=flickr.photos.getInfo&nojsoncallback=1&photo_id=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - api.flickr.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Date:
+      - Tue, 21 Jul 2026 08:01:54 GMT
+      X-Server:
+      - serverless-proxy-10.78.44.162
+      Server:
+      - openresty
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Flickr-Api-Request:
+      - Root=1-6a5f2772-06c2c7c815420f633d239f29
+      Set-Cookie:
+      - ccc=%7B%22needsConsent%22%3Atrue%2C%22managed%22%3A0%2C%22changed%22%3A0%2C%22info%22%3A%7B%22cookieBlock%22%3A%7B%22level%22%3A0%2C%22blockRan%22%3A0%7D%7D%7D;
+        expires=Thu, 20-Aug-2026 08:01:54 GMT; Max-Age=2592000; path=/; domain=.flickr.com
+      - ccc=%7B%22needsConsent%22%3Atrue%2C%22managed%22%3A0%2C%22changed%22%3A0%2C%22info%22%3A%7B%22cookieBlock%22%3A%7B%22level%22%3A0%2C%22blockRan%22%3A1%7D%7D%7D;
+        expires=Thu, 20-Aug-2026 08:01:54 GMT; Max-Age=2592000; path=/; domain=.flickr.com
+      X-Cache:
+      - Miss from cloudfront
+      Via:
+      - 1.1 55bef38e734117ff8ff4a83214717dc8.cloudfront.net (CloudFront)
+      X-Amz-Cf-Pop:
+      - LHR5-P1
+      X-Amz-Cf-Id:
+      - 0I8s6ZSqf2-sb8-inpE830RHWY8C_sRNiclbPtLOAWAdQpkp_NCeJA==
+    body:
+      encoding: ASCII-8BIT
+      string: '{"stat":"fail","code":1,"message":"Photo \"1\" not found (invalid ID)"}'
+  recorded_at: Tue, 21 Jul 2026 08:01:54 GMT
 recorded_with: VCR 6.4.0

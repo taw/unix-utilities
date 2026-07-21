@@ -1,22 +1,38 @@
 #!/usr/bin/env ruby
 
 require "fileutils"
-require "objectiveflickr"
+require "json"
+require "net/http"
 require "optimist"
+require "uri"
 
 class FlickrGetter
+  REST_ENDPOINT = "https://api.flickr.com/services/rest/"
+
   attr_reader :root_dir
 
   def initialize(root_dir)
     @root_dir = root_dir
   end
 
-  def flickr
-    @flickr ||= FlickrInvocation.new(api_key)
-  end
-
   def api_key
     '0309264c0827bdb4ebcbff7c5b4a14a3'
+  end
+
+  def flickr_api_call(method, params={})
+    query = params.merge(
+      method: method,
+      api_key: api_key,
+      format: "json",
+      nojsoncallback: "1",
+    )
+    url = URI.parse(REST_ENDPOINT)
+    url.query = URI.encode_www_form(query)
+    response = JSON.parse(Net::HTTP.get(url))
+    if response["stat"] != "ok"
+      raise "Flickr API error in #{method}: #{response["message"]}"
+    end
+    response
   end
 
   def extract_photo_id(arg)
@@ -81,8 +97,8 @@ class FlickrGetter
 
   def get!(arg)
     photo_id = extract_photo_id(arg)
-    r1 = flickr.call("flickr.photos.getInfo", :photo_id => photo_id)
-    r2 = flickr.call("flickr.photos.getSizes", :photo_id => photo_id)
+    r1 = flickr_api_call("flickr.photos.getInfo", :photo_id => photo_id)
+    r2 = flickr_api_call("flickr.photos.getSizes", :photo_id => photo_id)
 
     comment  = comment_from_getinfo(r1)
     filename = filename_from_getinfo(r1)
