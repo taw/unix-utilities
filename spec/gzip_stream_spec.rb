@@ -1,8 +1,8 @@
 require "stringio"
 
-# bin/gzip_stream calls gzip_stream(STDIN, STDOUT, 1) when loaded,
-# so eval just the definition to be able to test the function itself
-eval (Pathname(__dir__)+"../bin/gzip_stream").read.sub(/^gzip_stream\(STDIN.*\n/, "")
+# bin/gzip_stream only runs on STDIN when executed directly, so loading it
+# here just defines gzip_stream, and we can test the function itself
+load Pathname(__dir__)+"../bin/gzip_stream"
 
 describe "gzip_stream" do
   # To verify that plain gzip doesn't work for it:
@@ -62,6 +62,8 @@ describe "gzip_stream" do
       sleep 2.5
       expect(read_available(fh)).to_not be_empty
       fh.close_write
+      # Read the finalization mark, or gzip_stream gets EPIPE writing it
+      fh.read
     end
   end
 
