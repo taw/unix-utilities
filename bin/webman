@@ -94,13 +94,13 @@ MAN_CACHE = ENV["HOME"] + "/.man_cache"
 FileUtils.mkdir_p MAN_CACHE
 
 browser = true
-if ARGV[0] =~ /\A(?:(-T|--term)|(-))\z/
-  if $1
+if ARGV[0] =~ /\A-/
+  case (opt = ARGV.shift)
+  when "-T", "--term", "--terminal"
     browser = false
   else
-    raise "Unrecognized option: #{ARGV[0]}"
+    raise "Unrecognized option: #{opt}"
   end
-  ARGV.shift
 end
 
 if browser
