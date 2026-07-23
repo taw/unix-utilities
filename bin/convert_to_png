@@ -2,7 +2,7 @@
 
 ARGV.each do |fn|
   next if fn =~ /\.png\z/i
-  pngfn = fn.sub(/\.([a-z]+)\z/i, ".png")
+  pngfn = fn.sub(/\.([a-z0-9]+)\z/i, ".png")
   if File.exist?(pngfn)
     puts "Not converting #{fn} to #{pngfn} because target exists"
     next

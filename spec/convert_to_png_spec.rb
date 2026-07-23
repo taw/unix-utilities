@@ -27,6 +27,19 @@ describe "convert_to_png" do
     end
   end
 
+  it "converts files with digits in the extension, like jpeg2000 and camera raw" do
+    MockUnix.new do |env|
+      env.mock_command "convert"
+      (env.path+"cat.jp2").write("")
+      (env.path+"dog.CR2").write("")
+      system binary.to_s, "cat.jp2", "dog.CR2"
+      expect(env.command_trace("convert")).to eq([
+        ["cat.jp2", "cat.png"],
+        ["dog.CR2", "dog.png"],
+      ])
+    end
+  end
+
   it "skips files which are png already, whatever the case" do
     MockUnix.new do |env|
       env.mock_command "convert"
