@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+trap("PIPE", "EXIT")
+
 if ARGV[0]
   n = Integer(ARGV[0])
 else
