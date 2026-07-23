@@ -5,11 +5,12 @@ require "shellwords"
 def which(a)
   (ENV['PATH']||"").split(":").each do |dir|
     begin
-      f = Pathname(dir)+a
-      10.times{ f = f.readlink if f.symlink? }
+      # realpath, as symlink targets are relative to the symlink's directory,
+      # not to our cwd
+      f = (Pathname(dir)+a).realpath
       return f.to_s if (f.executable? and
                         f.file? and
-                        f.open.read(2) == "#!")
+                        f.open{|fh| fh.read(2)} == "#!")
     rescue
     end
   end
