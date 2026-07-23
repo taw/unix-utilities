@@ -1,5 +1,36 @@
+# bin/flickr_get only downloads anything when executed directly, so loading it
+# here just defines FlickrGetter
+load Pathname(__dir__)+"../bin/flickr_get"
+
 describe "flickr_get" do
   let(:binary) { Pathname(__dir__)+"../bin/flickr_get" }
+
+  describe "extract_photo_id" do
+    let(:getter) { FlickrGetter.new("out") }
+
+    # The id is never simply the last number in the URL
+    {
+      "https://www.flickr.com/photos/naikaklutz/6752498919/" => "6752498919",
+      "https://www.flickr.com/photos/naikaklutz/6752498919/in/album-72157629178690711/" => "6752498919",
+      "https://flickr.com/photos/12345678@N00/6752498919/sizes/l/" => "6752498919",
+      "https://live.staticflickr.com/7020/6752498919_066c81308f_o.jpg" => "6752498919",
+      "https://farm8.staticflickr.com/7020/6752498919_066c81308f_b.jpg" => "6752498919",
+      "http://farm8.static.flickr.com/7020/6752498919_066c81308f.jpg" => "6752498919",
+      "6752498919" => "6752498919",
+    }.each do |arg, photo_id|
+      it "extracts #{photo_id} from #{arg}" do
+        expect(getter.extract_photo_id(arg)).to eq(photo_id)
+      end
+    end
+
+    ["https://www.flickr.com/photos/naikaklutz/albums/72157629178690711",
+     "not a flickr url at all",
+     ""].each do |arg|
+      it "refuses to guess an id from #{arg.inspect}" do
+        expect{ getter.extract_photo_id(arg) }.to raise_error(/Parse error/)
+      end
+    end
+  end
 
   def flickr_get(*args)
     IO.popen(["ruby", "-r#{__dir__}/mock_network", binary.to_s, *args], &:read)

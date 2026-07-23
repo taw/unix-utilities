@@ -35,11 +35,23 @@ class FlickrGetter
     response
   end
 
+  # The id sits in a different place in every URL flickr ever used, and it's
+  # never the last number - photo pages can be followed by /in/album-<id>/,
+  # image files by a secret and a size:
+  #   https://www.flickr.com/photos/naikaklutz/6752498919/
+  #   https://www.flickr.com/photos/naikaklutz/6752498919/in/album-72157629178690711/
+  #   https://live.staticflickr.com/7020/6752498919_066c81308f_o.jpg
+  #   https://farm8.staticflickr.com/7020/6752498919_066c81308f_b.jpg
+  #   http://farm8.static.flickr.com/7020/6752498919_066c81308f.jpg
+  #   6752498919
   def extract_photo_id(arg)
-    if arg =~ %r[\Ahttp://farm\d+.static.flickr.com/\d+/(\d+)_.*\.jpg\Z]
-      photo_id = $1
-    elsif arg =~ /(\d*)\D*\Z/
-      photo_id = $1
+    case arg
+    when %r[\Ahttps?://(?:www\.)?flickr\.com/photos/[^/]+/(\d+)]
+      $1
+    when %r[\Ahttps?://(?:live|farm\d+)\.static\.?flickr\.com/\d+/(\d+)_]
+      $1
+    when /\A(\d+)\z/
+      $1
     else
       raise "Parse error: #{arg}"
     end
@@ -122,18 +134,17 @@ class FlickrGetter
   end
 end
 
-opts = Optimist::options do
-  opt :out, "Directory to save files to", :default => "#{ENV["HOME"]}/Downloads"
-end
-
-fg = FlickrGetter.new(opts[:out])
-
-if ARGV.empty?
-  STDIN.readlines.map(&:strip).each do |arg|
-    fg.get! arg
+def flickr_get!(args)
+  opts = Optimist::options do
+    opt :out, "Directory to save files to", :default => "#{ENV["HOME"]}/Downloads"
   end
-else
-  ARGV.each do |arg|
+
+  fg = FlickrGetter.new(opts[:out])
+
+  args = STDIN.readlines.map(&:strip) if args.empty?
+  args.each do |arg|
     fg.get! arg
   end
 end
+
+flickr_get!(ARGV) if __FILE__ == $0
