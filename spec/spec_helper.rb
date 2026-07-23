@@ -3,6 +3,10 @@ require "pathname"
 require "tmpdir"
 require "fileutils"
 require "timeout"
+require "stringio"
+require "open3"
+require "json"
+require "sqlite3"
 
 class MockUnix
   attr_reader :path

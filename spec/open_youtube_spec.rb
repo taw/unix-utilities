@@ -1,5 +1,3 @@
-require "open3"
-
 describe "open_youtube" do
   let(:binary) { Pathname(__dir__)+"../bin/open_youtube" }
 

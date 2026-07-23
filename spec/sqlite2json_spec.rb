@@ -1,6 +1,3 @@
-require "sqlite3"
-require "json"
-
 describe "sqlite2json" do
   let(:binary) { Pathname(__dir__)+"../bin/sqlite2json" }
 

@@ -1,5 +1,3 @@
-require "stringio"
-
 # bin/gzip_stream only runs on STDIN when executed directly, so loading it
 # here just defines gzip_stream, and we can test the function itself
 load Pathname(__dir__)+"../bin/gzip_stream"

@@ -1,25 +1,41 @@
 #!/usr/bin/env ruby
 
-unless ARGV[0]
-  STDERR.puts "Usage: #{$0} <countdown in seconds> [<optional> <command>]"
-  exit 1
-end
-
 def fmt_time(s)
+  # sleep can overshoot, and the countdown should never go negative
+  s = 0 if s < 0
   minutes = s.to_i/60
   "%d:%02d" % [minutes, s - minutes*60]
 end
 
-time_target = ARGV.shift.to_i
-time_start = Time.now
-while true
-  time_elapsed = Time.now-time_start
-  print "\r", fmt_time((time_target - time_elapsed).ceil)
-  break if time_elapsed >= time_target
-  sleep 1
+# Times get shorter as they count down (10:00 -> 9:59), so pad everything to
+# the widest string printed so far, or stale characters stay on the screen
+def status_printer(io=STDOUT)
+  width = 0
+  lambda do |status|
+    width = [width, status.size].max
+    io.print "\r", status.ljust(width)
+  end
 end
-print "\rSTART!\n"
 
-unless ARGV.empty?
-  system *ARGV
+def countdown!(args)
+  unless args[0]
+    STDERR.puts "Usage: #{$0} <countdown in seconds> [<optional> <command>]"
+    exit 1
+  end
+
+  print_status = status_printer
+  time_target = args.shift.to_i
+  time_start = Time.now
+  while true
+    time_elapsed = Time.now-time_start
+    print_status[fmt_time((time_target - time_elapsed).ceil)]
+    break if time_elapsed >= time_target
+    sleep 1
+  end
+  print_status["START!"]
+  print "\n"
+
+  system *args unless args.empty?
 end
+
+countdown!(ARGV) if __FILE__ == $0
