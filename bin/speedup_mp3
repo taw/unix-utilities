@@ -62,7 +62,7 @@ class SpeedUpMp3
     raise "ffmpeg only supports speeds from 0.5 to 2.0" unless (0.5..2.0).include?(@factor)
     filter = "[0:v]setpts=PTS/#{@factor}[v];[0:a]atempo=#{@factor}[a]"
     part_target = target.dirname + "part-#{target.basename}"
-    system *%W[ffmpeg -i #{source} -filter_complex #{filter} -map [v] -map [a] #{part_target}]
+    system *%W[ffmpeg -i #{source} -filter_complex #{filter} -map [v] -map [a] #{part_target}] or raise "#{source} conversion failed"
     copy_timestamp!(source, part_target)
     system *%W[mv #{part_target} #{target}]
   end
