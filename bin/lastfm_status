@@ -2,6 +2,7 @@
 
 require "open-uri"
 require "nokogiri"
+require "time"
 
 class Numeric
   def time_pp
