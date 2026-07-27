@@ -74,4 +74,27 @@ describe "toutf8" do
       expect(output).to eq("All your base are belong to us.\n")
     end
   end
+
+  # 8bit legacy encodings are all guessed as Windows-1252, as there's nothing
+  # in the file saying which one it actually is
+  context "Latin-1" do
+    let(:file) { "latin1" }
+    it "converts to UTF-8" do
+      expect(output).to eq("Über café naïve.\n")
+    end
+  end
+
+  context "Windows-1252" do
+    let(:file) { "cp1252" }
+    it "converts to UTF-8" do
+      expect(output).to eq("“Smart quotes” — dash.\n")
+    end
+  end
+
+  context "bytes no encoding can decode" do
+    let(:file) { "cp1252_invalid" }
+    it "replaces them instead of crashing" do
+      expect(output).to eq("a\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}b\n")
+    end
+  end
 end

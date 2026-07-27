@@ -37,12 +37,23 @@ class ToUTF8
     @data.unpack("v*").sum < @data.unpack("n*").sum
   end
 
+  # Every guess here can be wrong, and a mangled character beats a backtrace
+  def convert_from(encoding)
+    @data = @data.force_encoding(encoding).encode("UTF-8", invalid: :replace, undef: :replace)
+  end
+
   def convert_utf16le
-    @data = @data.force_encoding("UTF-16LE").encode("UTF-8")
+    convert_from("UTF-16LE")
   end
 
   def convert_utf16be
-    @data = @data.force_encoding("UTF-16BE").encode("UTF-8")
+    convert_from("UTF-16BE")
+  end
+
+  # Nothing tells 8bit legacy encodings apart, so just guess the most common
+  # one - Windows-1252 is Latin-1 plus printable characters in the C1 range
+  def convert_legacy_8bit
+    convert_from("Windows-1252")
   end
 
   def call
@@ -59,6 +70,10 @@ class ToUTF8
     elsif has_utf16be_bom?
       strip_utf16_bom
       convert_utf16be
+    # Text in UTF-16 is mostly NUL bytes unless it's all non-Latin script, so
+    # without a single one of them it's far more likely to be 8bit legacy
+    elsif !has_nul_bytes?
+      convert_legacy_8bit
     # Asssume it's some kind of UTF-16, which is honestly a bad assumption
     # but it's good enough v1
     elsif guess_utf16le?
