@@ -961,4 +961,30 @@ http_interactions:
       encoding: ASCII-8BIT
       string: '{"stat":"fail","code":1,"message":"Photo \"1\" not found (invalid ID)"}'
   recorded_at: Tue, 21 Jul 2026 08:01:54 GMT
+- request:
+    method: get
+    uri: https://live.staticflickr.com/7020/6752498919_066c81308f_o.jpg
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+      Host:
+      - live.staticflickr.com
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - image/jpeg
+    body:
+      encoding: ASCII-8BIT
+      string: fake jpeg data for tests
+  recorded_at: Tue, 21 Jul 2026 08:01:53 GMT
 recorded_with: VCR 6.4.0

@@ -36,9 +36,10 @@ describe "flickr_get" do
     IO.popen(["ruby", "-r#{__dir__}/mock_network", binary.to_s, *args], &:read)
   end
 
+  # The photo response in the cassette has a placeholder body - the real one is
+  # a 4MB jpeg, and none of this cares what the bytes actually are
   it "downloads photo with license in filename" do
     MockUnix.new do |env|
-      env.mock_command "wget"
       output = flickr_get("--out", "out", "https://www.flickr.com/photos/naikaklutz/6752498919/")
       url = "https://live.staticflickr.com/7020/6752498919_066c81308f_o.jpg"
       expect(output).to eq([
@@ -46,9 +47,54 @@ describe "flickr_get" do
         "Cat by naikaklutz from flickr (CC-NC-SA)",
         "out/cat_by_naikaklutz_from_flickr_cc-nc-sa.jpg",
       ].join("\n") + "\n")
-      expect(env.command_trace("wget")).to eq([
-        ["-nv", url, "-O", "out/cat_by_naikaklutz_from_flickr_cc-nc-sa.jpg"],
-      ])
+      expect(File.binread("out/cat_by_naikaklutz_from_flickr_cc-nc-sa.jpg")).to eq("fake jpeg data for tests")
+    end
+  end
+
+  describe "download!" do
+    let(:getter) { FlickrGetter.new("out") }
+    let(:url) { "https://live.staticflickr.com/7020/6752498919_066c81308f_o.jpg" }
+
+    def response(klass, code)
+      klass.new("1.1", code, "").tap{|r| allow(r).to receive(:body).and_return("") }
+    end
+
+    it "leaves no file behind when the download fails" do
+      MockUnix.new do
+        allow(Net::HTTP).to receive(:get_response).and_return(response(Net::HTTPNotFound, "404"))
+        expect{ getter.download!(url, "out/cat.jpg") }.to raise_error(/HTTP 404/)
+        expect(File.exist?("out/cat.jpg")).to eq(false)
+      end
+    end
+
+    it "leaves no file behind when the connection fails" do
+      MockUnix.new do
+        allow(Net::HTTP).to receive(:get_response).and_raise(SocketError, "no route to host")
+        expect{ getter.download!(url, "out/cat.jpg") }.to raise_error(SocketError)
+        expect(File.exist?("out/cat.jpg")).to eq(false)
+      end
+    end
+
+    it "follows redirects" do
+      MockUnix.new do
+        redirect = response(Net::HTTPMovedPermanently, "301")
+        redirect["location"] = url
+        ok = Net::HTTPOK.new("1.1", "200", "OK")
+        allow(ok).to receive(:body).and_return("photo bytes")
+        allow(Net::HTTP).to receive(:get_response).and_return(redirect, ok)
+        getter.download!("http://farm8.static.flickr.com/7020/6752498919_066c81308f.jpg", "out/cat.jpg")
+        expect(File.binread("out/cat.jpg")).to eq("photo bytes")
+      end
+    end
+
+    it "gives up on a redirect loop" do
+      MockUnix.new do
+        redirect = response(Net::HTTPMovedPermanently, "301")
+        redirect["location"] = url
+        allow(Net::HTTP).to receive(:get_response).and_return(redirect)
+        expect{ getter.download!(url, "out/cat.jpg") }.to raise_error(/Too many redirects/)
+        expect(File.exist?("out/cat.jpg")).to eq(false)
+      end
     end
   end
 

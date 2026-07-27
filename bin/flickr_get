@@ -107,6 +107,25 @@ class FlickrGetter
     r["sizes"]["size"].max_by{|x| x["width"].to_i}["source"]
   end
 
+  # Net::HTTP doesn't follow redirects on its own, and flickr's older CDN
+  # hostnames redirect to the current ones
+  def http_get(url, redirect_limit=5)
+    raise "Too many redirects for #{url}" if redirect_limit == 0
+    response = Net::HTTP.get_response(URI(url))
+    if response.is_a?(Net::HTTPRedirection)
+      http_get(URI.join(url, response["location"]), redirect_limit-1)
+    else
+      response
+    end
+  end
+
+  def download!(url, path)
+    response = http_get(url)
+    raise "HTTP #{response.code} #{response.message}" unless response.is_a?(Net::HTTPSuccess)
+    FileUtils.mkdir_p File.dirname(path)
+    File.binwrite(path, response.body)
+  end
+
   def get!(arg)
     photo_id = extract_photo_id(arg)
     r1 = flickr_api_call("flickr.photos.getInfo", :photo_id => photo_id)
@@ -121,11 +140,16 @@ class FlickrGetter
         puts comment
         puts "Already exists: #{filename}"
       else
-        FileUtils.mkdir_p File.dirname(filename)
-        system "wget", "-nv", url, "-O", filename
-        puts url
-        puts comment
-        puts filename
+        begin
+          download!(url, filename)
+          puts url
+          puts comment
+          puts filename
+        rescue StandardError
+          # One photo failing shouldn't stop the rest of the batch
+          puts comment
+          puts "Failed to get #{filename}: #{$!}"
+        end
       end
     else
       puts comment
