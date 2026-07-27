@@ -12,6 +12,11 @@ class DedupFiles
   end
   def add(fn)
     fn = Pathname(fn)
+    # Both directory? and file? follow symlinks. A symlink is a duplicate of
+    # its own target, and deleting the target would leave a broken link behind,
+    # so they're skipped, targets and all - a symlinked directory can also lead
+    # anywhere outside the tree we were pointed at.
+    return if fn.symlink?
     if fn.directory?
       fn.children.each do |cfn|
         add(cfn)
