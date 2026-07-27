@@ -37,6 +37,27 @@ describe "pub" do
     end
   end
 
+  it "doesn't follow symlinks out of the directory tree" do
+    MockUnix.new do |env|
+      (env.path+"outside").mkpath
+      (env.path+"outside/secret.txt").write("")
+      (env.path+"outside/secret.txt").chmod(0600)
+      (env.path+"dir").mkpath
+      (env.path+"dir/link").make_symlink("../outside")
+      system binary.to_s, "dir"
+      expect(mode("dir")).to eq("755")
+      expect(mode("outside/secret.txt")).to eq("600")
+    end
+  end
+
+  it "doesn't warn about symlinks to nonexistent files" do
+    MockUnix.new do |env|
+      (env.path+"link").make_symlink("nosuchfile")
+      output = IO.popen([binary.to_s, "link"], err: [:child, :out], &:read)
+      expect(output).to eq("")
+    end
+  end
+
   it "warns about files which don't exist" do
     MockUnix.new do |env|
       output = IO.popen([binary.to_s, "nosuchfile"], err: [:child, :out], &:read)

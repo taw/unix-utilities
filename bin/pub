@@ -2,6 +2,9 @@
 
 class File
   def self.pub(fn)
+    # chmod and directory? both follow symlinks, so following one would change
+    # permissions of files outside the tree we were asked to fix
+    return if symlink?(fn)
     unless exist?(fn)
       warn "File #{fn} doesn't exist"
       return
