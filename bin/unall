@@ -46,7 +46,9 @@ class UnarchiveFile
     files = Array(send("files_#{fmt}"))
     return "Empty" if files.empty?
     if needs_directory?(files)
-      dnx = create_directory(basename[0...-ext.size])
+      # Slicing by length, not delete_suffix, as ext was matched case insensitively.
+      # Archives detected by mime type have no ext at all, and keep the whole name.
+      dnx = create_directory(basename[0, basename.size - ext.size])
       Dir.chdir(dnx){ send("unpack_#{fmt}") ? "OK" : "FAIL" }
     else
       send("unpack_#{fmt}") ? "OK" : "FAIL"

@@ -15,10 +15,10 @@ describe "unall" do
     FileUtils.remove "b.txt"
   end
 
-  def unpacks_and_deletes_archive(binary, name)
+  def unpacks_and_deletes_archive(binary, name, dir="foo")
     system %Q["#{binary}" "#{name}" >/dev/null]
     files = Pathname(".").find.select(&:file?).reject{|n| n.to_s =~ /.DS_Store/}.map{|n| [n.to_s, n.read]}
-    expect(files).to eq([["foo/a.txt", "hello"], ["foo/b.txt", "world"]])
+    expect(files).to eq([["#{dir}/a.txt", "hello"], ["#{dir}/b.txt", "world"]])
   end
 
   %W[7z zip tar].each do |format|
@@ -90,6 +90,28 @@ describe "unall" do
         system "mv foo.zip foo.wtf"
       end
       unpacks_and_deletes_archive binary, "foo.wtf"
+    end
+  end
+
+  # There's no extension to cut off, so the directory is named after the whole
+  # archive, and the archive itself is already sitting on that name
+  it "unzips archives in .zip format even with no extension at all" do
+    MockUnix.new do |env|
+      create_archive do
+        system "#{SevenZip} a foo.zip a.txt b.txt >/dev/null"
+        system "mv foo.zip foo"
+      end
+      unpacks_and_deletes_archive binary, "foo", "foo-1"
+    end
+  end
+
+  it "keeps the case of the archive name when naming the directory" do
+    MockUnix.new do |env|
+      create_archive do
+        system "#{SevenZip} a foo.zip a.txt b.txt >/dev/null"
+        system "mv foo.zip FOO.ZIP"
+      end
+      unpacks_and_deletes_archive binary, "FOO.ZIP", "FOO"
     end
   end
 end
