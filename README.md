@@ -170,6 +170,10 @@ Usage example:
     git_hash ~/repository
     git_hash # will hash current directory
 
+Only tracked files count. Symlinks are hashed as the path they point at, the
+same as git stores them, so nothing outside the repository affects the result.
+Tracked files missing from the working tree are skipped with a warning.
+
 gzip_stream
 -----------
 

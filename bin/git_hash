@@ -2,13 +2,36 @@
 
 require "digest/sha1"
 
+# Unless asked for NUL separated output git quotes anything unusual in a path,
+# and non-ASCII counts as unusual, so `café.txt' comes back as
+# `"caf\303\251.txt"' - a name which doesn't exist on the filesystem
+def git_ls_files
+  paths = `git ls-files -z`
+  # git printed its own complaint to stderr already
+  exit 1 unless $?.success?
+  paths.split("\0")
+end
+
 def git_hash(dir)
   Dir.chdir(dir) do
     tree = []
     tree << ["/submodules", `git submodule`.split(/\n/).sort]
-    `git ls-files`.split(/\n/).each do |path|
-      next if File.directory?(path)
-      tree << [path, Digest::SHA1.hexdigest(File.read(path))]
+    git_ls_files.each do |path|
+      # symlink? has to come first, as directory? and exist? both follow links
+      if File.symlink?(path)
+        # A symlink is hashed as the path it points at, which is what git itself
+        # stores for it. Following it would either pull content from outside the
+        # repository into the hash, or fail on a link pointing nowhere.
+        tree << [path, Digest::SHA1.hexdigest(File.readlink(path))]
+      elsif File.directory?(path)
+        # A submodule, listed by ls-files as its directory and hashed above
+        next
+      elsif File.exist?(path)
+        tree << [path, Digest::SHA1.hexdigest(File.binread(path))]
+      else
+        # Tracked, but not in the working tree - deleted, or never checked out
+        warn "Skipping missing file `#{path}'"
+      end
     end
     Digest::SHA1.hexdigest(tree.sort.inspect)
   end
