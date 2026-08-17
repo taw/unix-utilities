@@ -75,21 +75,6 @@ Overlapping arguments (the same directory twice, or one inside another) are
 refused outright, and symlinks are ignored with a warning. Both are much more
 likely to be a mistake than an intention.
 
-diffschemas
------------
-
-Gives diff of mysql schemas.
-
-Do dump mysql schema use:
-
-    mysqldump -uuser -ppassword -h hostname --where 0=1 database >schema.sql
-
-Then run:
-
-    diffschemas schema_1.sql schema_2.sql
-
-which will strip garbage like autoincrement counters and give you clean diff.
-
 e
 ---
 
