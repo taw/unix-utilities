@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Getopt::Long 2.24, qw( :config bundling no_ignore_case no_auto_abbrev );
+use Getopt::Long 2.24 qw( :config bundling no_ignore_case no_auto_abbrev );
 
 my ( $N, $EXT, @EXT, @USE, $DECODE, $ENCODE );
 sub compile { eval shift } # defined early to control the lexical environment
@@ -12,7 +12,8 @@ sub ERROR (&) { print STDERR $_[0]->(), "\n" if $msglevel > -1 };
 sub INFO  (&) { print STDERR $_[0]->(), "\n" if $msglevel >  0 };
 sub DEBUG (&) { print STDERR $_[0]->(), "\n" if $msglevel >  1 };
 
-sub pod2usage { require Pod::Usage;     goto &Pod::Usage::pod2usage }
+sub pod2usage { eval 'use open qw( :locale :std )';
+                require Pod::Usage;     goto &Pod::Usage::pod2usage }
 sub mkpath    { require File::Path;     goto &File::Path::mkpath }
 sub dirname   { require File::Basename; goto &File::Basename::dirname }
 
@@ -61,7 +62,7 @@ sub pipe_through {
 my ( $VERB, @EXPR );
 
 my %library = (
-	camelcase => 's/([[:alpha:]]+)/\u$1/g',
+	camelcase => 's/(?<!\p{Cased_Letter})(\p{Cased_Letter})/\u$1/g',
 	urlesc    => 's/%([0-9A-F][0-9A-F])/chr hex $1/ieg',
 	nows      => 's/[_[:blank:]]+/_/g',
 	rews      => 'y/_/ /',
@@ -106,14 +107,15 @@ GetOptions(
 	map { my $recipe = $_; $recipe => sub { push @EXPR, $library{ $recipe } } } keys %library,
 ) or pod2usage();
 
-$opt_stdin = @ARGV ? 0 : 1 unless defined $opt_stdin;
-
 $VERB ||= VERB_FOR->{ 'rename' };
 
 if ( not @EXPR ) {
+	no warnings 'newline';
 	pod2usage() if not @ARGV or -e $ARGV[0];
 	push @EXPR, shift;
 }
+
+$opt_stdin = @ARGV ? 0 : 1 unless defined $opt_stdin;
 
 pod2usage( -message => 'Error: --stdin and filename arguments are mutually exclusive' )
 	if $opt_stdin and @ARGV;
@@ -124,18 +126,10 @@ pod2usage( -message => 'Error: --null only permitted when reading filenames from
 pod2usage( -message => 'Error: --interactive and --force are mutually exclusive' )
 	if $opt_interactive and $opt_force;
 
-my $n = 1;
-my $nwidth = 0;
-if ( defined $opt_ntmpl ) {
-	$opt_ntmpl =~ /\A(?:(\.\.\.0)|(0+))([0-9]+)\z/
-		or pod2usage( -message => "Error: unparseable counter format $opt_ntmpl" );
-	$nwidth = (
-		defined $1 ? -1 :
-		defined $2 ? length $opt_ntmpl :
-		0
-	);
-	$n = $3;
-}
+pod2usage( -message => "Error: unparseable counter format $opt_ntmpl" )
+	if defined $opt_ntmpl and $opt_ntmpl !~ /\A(?:(\.\.\.0)|(?=[0-9]))([0-9]+)\z/;
+
+my ( $n, $do_auto_width ) = defined $opt_ntmpl ? ( $2, defined $1 ) : 1;
 
 ++$msglevel if $opt_dryrun;
 
@@ -145,7 +139,7 @@ my $code = do {
 		my ( $in_enc, $out_enc ) = split /:/, $opt_transcode, 2;
 		$DECODE = Encode::find_encoding( $in_enc );
 		die "No such encoding $in_enc\n" if not ref $DECODE;
-		$ENCODE = defined $out_enc ? Encode::find_encoding( $out_enc ) : $ENCODE;
+		$ENCODE = defined $out_enc ? Encode::find_encoding( $out_enc ) : $DECODE;
 		die "No such encoding $out_enc\n" if not ref $ENCODE;
 		unshift @EXPR, '$_ = $DECODE->decode($_)';
 		push    @EXPR, '$_ = $ENCODE->encode($_)';
@@ -196,7 +190,10 @@ if ( $opt_time_sort ) {
 
 @ARGV = reverse @ARGV if $opt_backwards;
 
-$nwidth = length $n+@ARGV if $nwidth < 0;
+my $nwidth
+	= $do_auto_width ? length $n+$#ARGV
+	: $n =~ /\A0/    ? length $n
+	: 0;
 
 for ( @ARGV ) {
 	my $old = $_;
@@ -221,7 +218,7 @@ for ( @ARGV ) {
 	}
 
 	if ( $opt_interactive ) {
-		print "\u$VERB->{inf} '$old' to '$_'? [n] ";
+		print "\u$VERB->{inf} '$old' to '$_' (y/n)? [n] ";
 		if ( <STDIN> !~ /^y(?:es)?$/i ) {
 			DEBUG { "Skipping '$old'." };
 			next;
@@ -248,13 +245,17 @@ for ( @ARGV ) {
 
 __END__
 
+=pod
+
+=encoding UTF-8
+
 =head1 NAME
 
 rename - renames multiple files
 
 =head1 VERSION
 
-version 1.600
+version 1.601
 
 =head1 SYNOPSIS
 
@@ -265,6 +266,8 @@ B<[files]>
 Switches:
 
 =over 1
+
+=item B<--man> (read the full manual)
 
 =item B<-0>/B<--null> (when reading from STDIN)
 
@@ -438,6 +441,14 @@ Convert file names to all lower case.
 
 Convert file names to all upper case.
 
+=item B<-d>, B<--delete>
+
+Remove the first instance of the string argument you supply.
+
+=item B<-D>, B<--delete-all>
+
+Remove every instance of the string argument you supply.
+
 =item B<-e>, B<--expr>
 
 The C<code> argument to this option should be a Perl expression that assumes the filename in the C<$_> variable and modifies it for the filenames to be renamed. When no other C<-c>, C<-C>, C<-e>, C<-s>, or C<-z> options are given, you can omit the C<-e> from infront of the code.
@@ -569,6 +580,22 @@ Incidentally, note the C<-N> switch and the C<$N> variable used in the Perl expr
 
 =head1 COOKBOOK
 
+=head2 Recursive renaming in subdirectories
+
+Since F<rename> only operates on file names given on the command line, it may not be obvious how it can be used to rename files recursively in subdirectories: using tools outside of F<rename>.
+
+The portable option is to pipe a list of file names to it already:
+
+ find somedir -print0 | rename -0 -e 'print "$_\n"'
+
+But when you invoke F<rename> from zsh or from a semi-recent bash with the C<globstar> option enabled, you can use double asterisks in your globs to make them recursive:
+
+ rename -e 'print "$_\n"' somedir/**
+
+Note that F<rename> will then operate on the entire path, not just the filename. (A future version of F<rename> may add mechanisms to address this.)
+
+=head2 Putting the CPAN to use
+
 Using the C<-M> switch, you can quickly put F<rename> to use for just about everything the CPAN offers:
 
 =head3 Coarsely latinize a directory full of files with non-Latin characters
@@ -581,8 +608,19 @@ See L<Text::Unidecode>.
 
  rename -p -MImage::EXIF '$_ = "$1-$2/$_" if Image::EXIF->new->file_name($_)
    ->get_image_info->{"Image Created"} =~ /(\d\d\d\d):(\d\d)/' *.jpeg
+ 
+ # or
+ 
+ rename -p -MImage::ExifTool=:Public '$_ = "$1-$2/$_"
+   if ImageInfo($_)->{"CreateDate"} =~ /(\d\d\d\d):(\d\d)/' *.jpeg
 
-See L<Image::EXIF>.
+See L<Image::EXIF>, L<Image::ExifTool>.
+
+=head3 Fix up mail attachments stored under MIME-encoded names
+
+ rename -MEncode '$_=decode "MIME-Header", $_ if /^=/' =*
+
+See L<Encode::MIME::Header>.
 
 =head1 SEE ALSO
 
@@ -594,10 +632,15 @@ None currently known.
 
 =head1 AUTHORS
 
-Aristotle Pagaltzis
+Aristotle Pagaltzis <pagaltzis@gmx.de>
 
 Idea, inspiration and original code from Larry Wall and Robin Barker.
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
 
-This script is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+This software is copyright (c) 2020 by Aristotle Pagaltzis.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
