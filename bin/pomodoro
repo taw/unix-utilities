@@ -2,6 +2,13 @@
 
 require "shellwords"
 
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 def osa(cmd)
   cmd = %W[osascript -e #{cmd}].map(&:shellescape).join(" ")
   `#{cmd}`
@@ -38,6 +45,9 @@ end
 
 def pomodoro!(args)
   path = "/System/Library/Sounds/Ping.aiff"
+  # Before the counting, not after - otherwise you wait out the whole pomodoro
+  # only to find there is nothing to play it with
+  check_commands! "osascript", "afplay"
   count_minutes!(args[0] ? args[0].to_i : 25)
   with_volume(100) do
     play path

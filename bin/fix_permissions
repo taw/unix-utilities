@@ -5,6 +5,13 @@ require "shellwords"
 require "find"
 require "fileutils"
 
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 class Pathname
   def script?
     read(2) == "#!"
@@ -31,6 +38,9 @@ def fix_permissions(path)
     fn.chmod(0666 &~ File.umask) unless fn.should_be_executable?
   end
 end
+
+# No arguments means the current directory, so there is always work to do
+check_commands! "file"
 
 if ARGV.empty?
   fix_permissions "."

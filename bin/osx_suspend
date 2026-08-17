@@ -7,4 +7,12 @@
 #
 # Whether that locks the session depends on your screen lock grace period -
 # check with `sysadminctl -screenLock status`.
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
+check_commands! "pmset"
 exit 1 unless system "pmset", "sleepnow"

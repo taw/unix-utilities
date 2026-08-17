@@ -7,6 +7,13 @@ require "uri"
 require "fileutils"
 require "shellwords"
 
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 module URI
   def self.for_form(base, args={})
     uri = URI.parse(base)
@@ -103,8 +110,12 @@ if ARGV[0] =~ /\A-/
   end
 end
 
+# groff and zcat are not checked on purpose - a failed rendering already falls
+# back to opening the search in a browser, and zcat is only for compressed pages
 if browser
+  check_commands! "man", "open"
   ManPage.new(ARGV).display_browser
 else
+  check_commands! "man"
   ManPage.new(ARGV).display_terminal
 end

@@ -1,5 +1,12 @@
 #!/usr/bin/env ruby
 
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 ###############
 # Core extensions
 class Class
@@ -276,6 +283,8 @@ Options:
     warn "Unknown option, ignoring: #{arg}"
   end
 end
+
+check_commands! "ps"
 
 roots = TreeCollection.new(Process.list)
 filters.each{|type,arg| roots.send(type,&arg)}

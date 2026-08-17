@@ -4,6 +4,13 @@ require "shellwords"
 require "pathname"
 require "fileutils"
 
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 class Pathname
   def shellescape
     to_s.shellescape
@@ -70,14 +77,20 @@ class SpeedUpMp3
   def speedup_file!(source, target)
     target.dirname.mkpath
     return if source.basename.to_s == ".DS_Store" # OSX junk
+    # Each format reaches for different tools, so a directory of plain mp3s
+    # converts without ffmpeg installed, and video without id3v2
     case source.extname.downcase
     when ".mp3"
+      check_commands! "sox", "id3v2", "mv"
       sox!(source, target) and copy_id3_tags!(source, target)
     when ".m4a", ".m4b", ".opus", ".ogg", ".aac"
+      check_commands! "ffmpeg", "sox", "mv"
       sox_m4a!(source, target.to_s.sub(/\.(?:m4a|m4b|opus|ogg|aac)\z/i, ".mp3"))
     when ".mp4", ".mkv", ".m4v"
+      check_commands! "ffmpeg", "mv"
       speedup_video!(source, target)
     when ".wav"
+      check_commands! "sox", "mv"
       sox!(source, target.to_s.sub(/\.(?:wav)\z/i, ".mp3"))
     else
       warn "Don't know how to convert '#{source}' to '#{target}'"

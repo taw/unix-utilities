@@ -2,6 +2,13 @@
 
 require "shellwords"
 
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 def osa(cmd)
   cmd = %W[osascript -e #{cmd}].map(&:shellescape).join(" ")
   `#{cmd}`
@@ -17,6 +24,7 @@ end
 
 case ARGV.size
 when 0
+  check_commands! "osascript"
   puts get_volume
 when 1
   volume = Float(ARGV[0]) rescue nil
@@ -24,6 +32,7 @@ when 1
     STDERR.puts "Volume must be a number, got: #{ARGV[0]}"
     exit 1
   end
+  check_commands! "osascript"
   set_volume! volume
 else
   STDERR.puts "Usage: #{$0} volume # set new volume (0 to 100)"

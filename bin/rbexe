@@ -2,6 +2,13 @@
 
 require "fileutils"
 
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 types = {
   "ruby"       => "#!/usr/bin/env ruby",
   "python"     => "#!/usr/bin/env python",
@@ -24,6 +31,8 @@ if ARGV[0] =~ /\A--?(.*)/
 end
 
 bin = types[type] or raise "No such type: #{type}"
+
+check_commands! "chmod" unless ARGV.empty?
 
 ARGV.each do |file_name|
   if File.exist?(file_name)

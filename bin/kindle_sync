@@ -3,6 +3,15 @@
 require "pathname"
 require "fileutils"
 
+EBOOK_CONVERT = "/Applications/calibre.app/Contents/MacOS/ebook-convert"
+
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 class Pathname
   def without_extname
     Pathname(to_s.chomp(extname))
@@ -113,10 +122,20 @@ class KindleSync
     source_path = Pathname("#{@repo.path + book}.epub")
     target_path = Pathname("#{@device.path + book}.mobi")
     target_path.dirname.mkpath
-    system *%W[/Applications/calibre.app/Contents/MacOS/ebook-convert #{source_path} #{target_path} --output-profile kindle_voyage]
+    system *%W[#{EBOOK_CONVERT} #{source_path} #{target_path} --output-profile kindle_voyage]
+  end
+
+  # Only books which need converting need calibre, so a device holding nothing
+  # but pdfs and mobis syncs fine without it
+  def check_converter!
+    return unless books.any?{|book, (state1, state2)| sync_command(state1, state2) == :convert_epub}
+    return if File.executable?(EBOOK_CONVERT)
+    STDERR.puts "#{$0} requires #{EBOOK_CONVERT} to convert epub books"
+    exit 1
   end
 
   def sync!
+    check_converter!
     books.sort.each do |book, (state1, state2)|
       cmd = sync_command(state1, state2)
       case cmd
@@ -144,6 +163,7 @@ class KindleSync
   end
 
   def cleanup!
+    check_commands! "trash"
     books.sort.each do |book, (state1, state2)|
       cmd = sync_command(state1, state2)
       cleanup_book! book if cmd == :cleanup

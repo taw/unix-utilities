@@ -14,6 +14,13 @@ end
 
 Cache = Moneta.new(:PStore, file: "#{ENV["HOME"]}/.media_size.cache")
 
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 class MediaFile < Pathname
   def media_file?
     case extname.downcase
@@ -230,6 +237,12 @@ def media_size!(args)
     STDERR.puts "Usage: #{$0} [-t] <media_dir1> <media_dir2> ..."
     exit 1
   else
+    # Local scanning and URLs need entirely different tools, so only demand the
+    # ones the arguments actually call for. mp3info is deliberately not checked -
+    # a collection with no mp3s in it never asks for mp3info at all.
+    paths, urls = args.partition{|arg| arg !~ /\Ahttps?:/}
+    check_commands!("exiftool", "file") unless paths.empty?
+    check_commands!("yt-dlp") unless urls.empty?
     MediaSizeReporter.new(args, opts[:totals], opts[:sorted], opts[:empty]).report!
   end
 end

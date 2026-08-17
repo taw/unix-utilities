@@ -4,6 +4,17 @@ require "fileutils"
 require "shellwords"
 require "optimist"
 
+def command_in_path?(cmd)
+  ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}
+end
+
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| command_in_path?(cmd)}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 class UnarchiveFile
   Formats = {
     :rar  => %w[.rar .cbr],
@@ -16,10 +27,20 @@ class UnarchiveFile
   }
 
   # OSX has multiple 7zip packages - `sevenzip` provides `7zz`, `p7zip` provides `7z`.
+  # Looked up when a format actually needs it, so tarballs unpack without any
+  # 7zip installed, and 7z archives unpack without tar.
   def sevenzip
-    @sevenzip ||= %w[7zz 7z].find{|cmd|
-      ENV["PATH"].split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}
-    } || raise("Neither `7zz` nor `7z` found in PATH")
+    @sevenzip ||= %w[7zz 7z].find{|cmd| command_in_path?(cmd)} || begin
+      STDERR.puts "#{$0} requires 7zz or 7z, neither found in PATH"
+      exit 1
+    end
+  end
+
+  # A missing unpacker lists no files at all, which reads as an empty archive
+  # rather than as a failure, so ask before believing the listing
+  def tar
+    check_commands! "tar"
+    "tar"
   end
 
   def formats
@@ -95,19 +116,19 @@ class UnarchiveFile
   end
 
   def files_tgz
-    `tar -tzf #{@path.shellescape}`.split("\n")
+    `#{tar} -tzf #{@path.shellescape}`.split("\n")
   end
 
   def files_tbz2
-    `tar -tjf #{@path.shellescape}`.split("\n")
+    `#{tar} -tjf #{@path.shellescape}`.split("\n")
   end
 
   def files_tar
-    `tar -tf #{@path.shellescape}`.split("\n")
+    `#{tar} -tf #{@path.shellescape}`.split("\n")
   end
 
   def files_txz
-    `tar -tf #{@path.shellescape}`.split("\n")
+    `#{tar} -tf #{@path.shellescape}`.split("\n")
   end
 
   def files_single_file
@@ -123,19 +144,19 @@ class UnarchiveFile
   end
 
   def unpack_tgz
-    system "tar", "-xzf", @path
+    system tar, "-xzf", @path
   end
 
   def unpack_tbz2
-    system "tar", "-xjf", @path
+    system tar, "-xjf", @path
   end
 
   def unpack_txz
-    system "tar", "-xf", @path
+    system tar, "-xf", @path
   end
 
   def unpack_tar
-    system "tar", "-xf", @path
+    system tar, "-xf", @path
   end
 
   def unpack_single_file
@@ -168,7 +189,9 @@ class UnarchiveCommand
 
     statuses.each do |status, files|
       puts [status, *files].join(" ")
-      system "trash", *files if status == "OK" and not @opts[:keep]
+      next unless status == "OK" and not @opts[:keep]
+      check_commands! "trash"
+      system "trash", *files
     end
   end
 end

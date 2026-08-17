@@ -2,6 +2,13 @@
 
 require "digest/sha1"
 
+def check_commands!(*cmds)
+  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
+  return if missing.empty?
+  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
+  exit 1
+end
+
 # Unless asked for NUL separated output git quotes anything unusual in a path,
 # and non-ASCII counts as unusual, so `café.txt' comes back as
 # `"caf\303\251.txt"' - a name which doesn't exist on the filesystem
@@ -37,4 +44,5 @@ def git_hash(dir)
   end
 end
 
+check_commands! "git"
 puts git_hash(ARGV[0] || ".")
