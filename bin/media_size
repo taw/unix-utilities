@@ -131,31 +131,41 @@ end
 
 class MediaDirectory < Pathname
   def media_files
-    unless @media_files
-      @media_files = []
-      retry_on_eintr do
-        find do |file|
-          next if file.directory?
-          file = MediaFile.new(file)
-          @media_files << file if file.media_file?
-        end
+    # A retry restarts find from the beginning, so the list has to be built from
+    # scratch on every attempt and only kept once one of them finishes. Adding to
+    # a list left over from an interrupted pass counts everything it already
+    # found a second time.
+    @media_files ||= retry_on_eintr do
+      files = []
+      find do |file|
+        next if file.directory?
+        file = MediaFile.new(file)
+        files << file if file.media_file?
       end
+      files
     end
-    @media_files
   end
 
   def duration
     @duration ||= media_files.map(&:duration).inject(0, &:+)
+  rescue Errno::EINTR
+    # Same as for a single unreadable file - one bad directory shouldn't take
+    # down a run over a whole collection
+    warn "FAIL: #{$!}"
+    0
   end
 
   # It is absolute bullshit that neither sshfs, fuse, nor ruby handles it automatically
   # and we have to do this in-app, but this is necessary for media_size to work over sshfs
   def retry_on_eintr
-    5.times do
+    attempts = 5
+    attempts.times do
       return yield
     rescue Errno::EINTR
       warn "EINTR, retrying"
     end
+    # Never silently return a partial listing - the numbers would just be wrong
+    raise Errno::EINTR, "gave up on #{self} after #{attempts} attempts"
   end
 end
 
@@ -207,15 +217,19 @@ class MediaSizeReporter
   end
 end
 
-opts = Optimist::options do
-  opt :empty, "Skip empty in report"
-  opt :totals, "Print totals"
-  opt :sorted, "Sort by size"
+def media_size!(args)
+  opts = Optimist::options do
+    opt :empty, "Skip empty in report"
+    opt :totals, "Print totals"
+    opt :sorted, "Sort by size"
+  end
+
+  if args.empty?
+    STDERR.puts "Usage: #{$0} [-t] <media_dir1> <media_dir2> ..."
+    exit 1
+  else
+    MediaSizeReporter.new(args, opts[:totals], opts[:sorted], opts[:empty]).report!
+  end
 end
 
-if ARGV.empty?
-  STDERR.puts "Usage: #{$0} [-t] <media_dir1> <media_dir2> ..."
-  exit 1
-else
-  MediaSizeReporter.new(ARGV, opts[:totals], opts[:sorted], opts[:empty]).report!
-end
+media_size!(ARGV) if __FILE__ == $0
