@@ -15,8 +15,12 @@ class DedupFiles
     # Both directory? and file? follow symlinks. A symlink is a duplicate of
     # its own target, and deleting the target would leave a broken link behind,
     # so they're skipped, targets and all - a symlinked directory can also lead
-    # anywhere outside the tree we were pointed at.
-    return if fn.symlink?
+    # anywhere outside the tree we were pointed at. Say so, as otherwise files
+    # you can plainly see in the directory would go unaccounted for.
+    if fn.symlink?
+      warn "Ignoring symlink `#{fn}'"
+      return
+    end
     if fn.directory?
       fn.children.each do |cfn|
         add(cfn)
@@ -76,10 +80,44 @@ class DedupFiles
   end
 end
 
+# One inside the other, or the same thing twice. Compared by path components, so
+# that `/foo' and `/foobar' don't look nested, and after realpath, so that `.'
+# and the directory it points at, or two spellings of the same name on a case
+# insensitive filesystem, are recognized as the same place.
+def overlapping?(path_a, path_b)
+  shorter, longer = [path_a.each_filename.to_a, path_b.each_filename.to_a].sort_by(&:size)
+  longer[0, shorter.size] == shorter
+end
+
+# Overlapping arguments would put the same file in the list twice, and then
+# delete it as a duplicate of itself, which loses the only copy. There is no
+# useful way to interpret them, so refuse the whole run rather than guess.
+def check_arguments!(args)
+  # Symlinks are ignored with a warning, and anything that doesn't exist is
+  # ignored too, so neither of them can put a file in the list twice
+  resolved = args
+    .reject{|arg| File.symlink?(arg) or not File.exist?(arg)}
+    .map{|arg| [arg, Pathname(arg).realpath]}
+  overlapping = resolved.combination(2).select{|(_, a), (_, b)| overlapping?(a, b)}
+  return if overlapping.empty?
+
+  overlapping.each do |(arg_a, path_a), (arg_b, path_b)|
+    if path_a == path_b
+      STDERR.puts "`#{arg_a}' and `#{arg_b}' are the same place"
+    else
+      STDERR.puts "`#{arg_a}' and `#{arg_b}' overlap"
+    end
+  end
+  STDERR.puts "Files would be deleted as duplicates of themselves, aborting"
+  exit 1
+end
+
 if ARGV.size == 0
   STDERR.puts "Usage: #{$0} <dir1> <dir2> ..."
   exit 1
 end
+
+check_arguments! ARGV
 
 df = DedupFiles.new
 ARGV.each{|fn| df.add(fn) }
