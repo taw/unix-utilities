@@ -103,8 +103,11 @@ class FlickrGetter
     "#{root_dir}/#{title_fn}_by_#{author_fn}_from_flickr_#{license}.#{format}"
   end
 
+  # Photos with no sizes listed at all exist - video, or a photo whose owner
+  # disabled downloading - and max_by would return nil for them
   def url_from_getsizes(r)
-    r["sizes"]["size"].max_by{|x| x["width"].to_i}["source"]
+    largest = (r.dig("sizes", "size") || []).max_by{|x| x["width"].to_i}
+    largest && largest["source"]
   end
 
   # Net::HTTP doesn't follow redirects on its own, and flickr's older CDN
@@ -135,26 +138,18 @@ class FlickrGetter
     filename = filename_from_getinfo(r1)
     url      = url_from_getsizes(r2)
 
-    if url
-      if File.exist?(filename)
-        puts comment
-        puts "Already exists: #{filename}"
-      else
-        begin
-          download!(url, filename)
-          puts url
-          puts comment
-          puts filename
-        rescue StandardError
-          # One photo failing shouldn't stop the rest of the batch
-          puts comment
-          puts "Failed to get #{filename}: #{$!}"
-        end
-      end
-    else
+    raise "No sizes to download" unless url
+
+    if File.exist?(filename)
       puts comment
-      puts "Failed to get #{filename}"
+      puts "Already exists: #{filename}"
+      return
     end
+
+    download!(url, filename)
+    puts url
+    puts comment
+    puts filename
   end
 end
 
@@ -165,10 +160,22 @@ def flickr_get!(args)
 
   fg = FlickrGetter.new(opts[:out])
 
-  args = STDIN.readlines.map(&:strip) if args.empty?
+  args = STDIN.readlines.map(&:strip).reject(&:empty?) if args.empty?
+
+  failed = []
   args.each do |arg|
-    fg.get! arg
+    begin
+      fg.get! arg
+    rescue StandardError
+      # One photo failing shouldn't stop the rest of the batch. Everything can
+      # fail per-photo - an unparseable argument, a deleted photo, an unknown
+      # license, a network error halfway through a download.
+      STDERR.puts "Failed to get #{arg}: #{$!}"
+      failed << arg
+    end
   end
+
+  exit 1 unless failed.empty?
 end
 
 flickr_get!(ARGV) if __FILE__ == $0

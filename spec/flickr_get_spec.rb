@@ -32,8 +32,35 @@ describe "flickr_get" do
     end
   end
 
+  describe "url_from_getsizes" do
+    let(:getter) { FlickrGetter.new("out") }
+
+    it "picks the widest size" do
+      sizes = {"sizes" => {"size" => [
+        {"width" => "500",  "source" => "small.jpg"},
+        {"width" => "2048", "source" => "big.jpg"},
+        {"width" => "1024", "source" => "medium.jpg"},
+      ]}}
+      expect(getter.url_from_getsizes(sizes)).to eq("big.jpg")
+    end
+
+    # These used to raise NoMethodError on nil, so the caller's "no sizes"
+    # branch could never run
+    it "returns nil when the photo has no sizes" do
+      expect(getter.url_from_getsizes({"sizes" => {"size" => []}})).to eq(nil)
+    end
+
+    it "returns nil when the response has no sizes at all" do
+      expect(getter.url_from_getsizes({})).to eq(nil)
+    end
+  end
+
   def flickr_get(*args)
     IO.popen(["ruby", "-r#{__dir__}/mock_network", binary.to_s, *args], &:read)
+  end
+
+  def flickr_get3(*args, **kwargs)
+    Open3.capture3("ruby", "-r#{__dir__}/mock_network", binary.to_s, *args, **kwargs)
   end
 
   # The photo response in the cassette has a placeholder body - the real one is
@@ -94,6 +121,51 @@ describe "flickr_get" do
         allow(Net::HTTP).to receive(:get_response).and_return(redirect)
         expect{ getter.download!(url, "out/cat.jpg") }.to raise_error(/Too many redirects/)
         expect(File.exist?("out/cat.jpg")).to eq(false)
+      end
+    end
+  end
+
+  # Every one of these used to abort the whole run, so a typo in the middle of a
+  # long list meant everything after it was silently never downloaded
+  describe "batches" do
+    let(:good_url) { "https://www.flickr.com/photos/naikaklutz/6752498919/" }
+    let(:downloaded) { "out/cat_by_naikaklutz_from_flickr_cc-nc-sa.jpg" }
+
+    it "carries on after an unparseable argument" do
+      MockUnix.new do
+        out, err, status = flickr_get3("--out", "out", "not a flickr url", good_url)
+        expect(err).to match(/Failed to get not a flickr url: Parse error/)
+        expect(out).to include(downloaded)
+        expect(File.binread(downloaded)).to eq("fake jpeg data for tests")
+        expect(status).to_not be_success
+      end
+    end
+
+    it "carries on after an API error" do
+      MockUnix.new do
+        out, err, status = flickr_get3("--out", "out", "1", good_url)
+        expect(err).to match(/Failed to get 1: Flickr API error in flickr\.photos\.getInfo/)
+        expect(out).to include(downloaded)
+        expect(File.exist?(downloaded)).to eq(true)
+        expect(status).to_not be_success
+      end
+    end
+
+    it "succeeds when every photo in the batch works" do
+      MockUnix.new do
+        out, err, status = flickr_get3("--out", "out", good_url)
+        expect(err).to eq("")
+        expect(out).to include(downloaded)
+        expect(status).to be_success
+      end
+    end
+
+    it "skips blank lines on stdin" do
+      MockUnix.new do
+        out, err, status = flickr_get3("--out", "out", stdin_data: "\n#{good_url}\n\n")
+        expect(err).to eq("")
+        expect(out).to include(downloaded)
+        expect(status).to be_success
       end
     end
   end
