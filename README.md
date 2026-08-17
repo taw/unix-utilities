@@ -534,7 +534,8 @@ tfl_travel_time
 ---------------
 
 Check TfL website for travel time between two places in London.
-Does not handle disambiguations so you need to be fully specific (like "Victoria Underground Station" not just "Victoria")
+Does not handle disambiguations so you need to be fully specific (like "Victoria Underground Station" not just "Victoria").
+It works best with postcodes.
 
 Usage example:
 

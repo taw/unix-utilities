@@ -7,17 +7,6 @@ require "uri"
 require "open-uri"
 require "json"
 
-def parse_time(time)
-  m = 0
-  t = time.dup
-  t.sub!(/Total time:/, "")
-  m += $1.to_i * 60 if t.sub!(/(\d+)hr/, "")
-  m += $1.to_i if t.sub!(/(\d+)mins?/, "")
-  t.gsub!(/\s|\u{A0}/, "")
-  raise "Time parse error: #{time.inspect}" unless t.empty?
-  m
-end
-
 # We actually need URI.escape here, with " " becoming %20 not +
 def tfl_uri(from, to)
   from_esc = CGI.escape(from).gsub("+", "%20")
@@ -31,8 +20,43 @@ def travel_time(from, to)
   data["journeys"].map{|j| j["duration"]}.min
 end
 
+# Errors come back as JSON too, but open-uri only gives us the body via the exception
+def error_body(err)
+  JSON.parse(err.io.read)
+rescue StandardError
+  {}
+end
+
+# 300 Multiple Choices means TfL couldn't pin down `from' and/or `to'
+def report_disambiguation(data, from, to)
+  [["from", from, "fromLocationDisambiguation"], ["to", to, "toLocationDisambiguation"]].each do |label, value, key|
+    options = data.dig(key, "disambiguationOptions") || []
+    next if options.empty?
+    warn "Ambiguous #{label} location `#{value}', did you mean:"
+    options.first(10).each do |option|
+      warn "  #{option.dig("place", "commonName")}"
+    end
+    warn "  ... and #{options.size - 10} more" if options.size > 10
+  end
+end
+
+unless ARGV.size == 2
+  STDERR.puts "Usage: #{$0} <from> <to>"
+  exit 1
+end
+
 from, to = ARGV
-t = travel_time(from, to)
+begin
+  t = travel_time(from, to)
+rescue OpenURI::HTTPError => err
+  data = error_body(err)
+  if err.io.status[0] == "300"
+    report_disambiguation(data, from, to)
+  else
+    warn "TfL API error (#{err.io.status.join(" ")}): #{data["message"] || "no details"}"
+  end
+  exit 1
+end
 if t
   puts t
 else
