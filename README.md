@@ -19,6 +19,8 @@ annotate_sgf
 It uses Gnu Go debug mode to annotate your go game in SGF.
 It will find a lot of tactical mistakes for most games by kyu players.
 
+Nowadays you're better off using something more modern like KataGo.
+
 Usage:
 
     annotate_sgf <game.sgf>
