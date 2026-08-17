@@ -604,11 +604,16 @@ If it can't find a man page, it googles for it.
 xmlview
 -------
 
-Reindents XML and cuts it to 150 column limit for easy viewig.
+Reindents XML and cuts long lines to your terminal width (or 150 columns when
+there's no terminal) for easy viewig.
 
 Usage example:
 
     xmlview huge_machine_generated_xml_file.xml
+    curl -s https://example.com/feed.xml | xmlview
+
+Broken XML is reindented as far as it parses, with the parse errors printed to
+stderr.
 
 xpstree
 -------

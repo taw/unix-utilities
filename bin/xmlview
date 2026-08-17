@@ -1,9 +1,92 @@
 #!/usr/bin/env ruby
 
-require "shellwords"
+require "io/console"
+require "nokogiri"
 
-if ARGV.empty?
-  exec "xmlindent -i 1 | colcut 150 | less"
-else
-  exec "xmlindent -i 1 < #{ARGV[0].shellescape} | colcut 150 | less"
+# This used to shell out to `xmlindent -i 1 | colcut 150 | less`, but xmlindent
+# is long gone from the package managers. Nokogiri indents identically, and the
+# rest is little enough code to not be worth two more processes.
+class XMLView
+  INDENT = 1
+
+  def initialize(input, columns)
+    @columns = columns
+    # noblanks drops whitespace-only text nodes, which is what lets libxml2
+    # reindent a document that was already indented some other way
+    @doc = Nokogiri::XML(input, &:noblanks)
+  end
+
+  def errors
+    @doc.errors
+  end
+
+  # Nokogiri recovers from broken XML rather than giving up, so there can be
+  # both errors and something worth looking at. Nothing parsed at all is the
+  # only real failure.
+  def empty?
+    @doc.root.nil?
+  end
+
+  def lines
+    @doc.to_xml(indent: INDENT).each_line.map{|line| line.chomp[0, @columns]}
+  end
 end
+
+# Machine generated XML has attribute soup in it, and wrapped lines make the
+# indentation useless for seeing the structure, so cut long lines to whatever
+# the terminal fits. This is also what the pager will be working with.
+def terminal_columns
+  # $COLUMNS overrides, as the shell doesn't normally export it
+  from_env = ENV["COLUMNS"].to_i
+  return from_env if from_env > 0
+  from_tty = tty_columns
+  return from_tty if from_tty > 0
+  # No terminal to ask - a pipe, or a redirect to a file
+  150
+end
+
+def tty_columns
+  STDOUT.winsize[1]
+rescue SystemCallError, NotImplementedError
+  0
+end
+
+# PAGER=cat, or PAGER=, switches paging off
+def pager
+  pager = ENV["PAGER"] || "less"
+  pager.strip.empty? ? nil : pager
+end
+
+def display(lines)
+  if STDOUT.tty? and (cmd = pager)
+    IO.popen(cmd, "w"){|fh| fh.puts lines}
+  else
+    puts lines
+  end
+rescue Errno::EPIPE
+  # Quitting the pager early is a perfectly normal thing to do
+end
+
+def read_input(path)
+  # Binary, so that libxml2 gets to decide the encoding from the declaration
+  path ? File.binread(path) : STDIN.binmode.read
+rescue SystemCallError
+  STDERR.puts "Can't read #{path}: #{$!.message}"
+  exit 1
+end
+
+if ARGV.size > 1
+  STDERR.puts "Usage: #{$0} [file.xml]"
+  exit 1
+end
+
+view = XMLView.new(read_input(ARGV[0]), terminal_columns)
+
+view.errors.each{|error| STDERR.puts error}
+
+if view.empty?
+  STDERR.puts "No XML found"
+  exit 1
+end
+
+display view.lines
