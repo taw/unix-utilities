@@ -77,7 +77,9 @@ class MediaFile < Pathname
       # warn "Unknown size of #{self}"
       0
     elsif answer =~ /\A(?:Track|Play)?Duration\s*:\s*(\d+\.?\d*)\s*\z/
-      $1.to_i
+      # Keep fractional seconds for large collections of very short files
+      # Rounded on display so it only matters for totals
+      $1.to_f
     else
       warn "Parse error: `#{answer}'"
       0
