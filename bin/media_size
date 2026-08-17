@@ -109,7 +109,7 @@ class MediaURL
   end
 
   def compute_duration
-    answer = `youtube-dl --get-duration #{@url.shellescape}`
+    answer = `yt-dlp --print duration_string #{@url.shellescape}`
     if answer.empty?
       warn "Unknown size of #{@url}"
       nil
