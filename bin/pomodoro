@@ -7,8 +7,10 @@ def osa(cmd)
   `#{cmd}`
 end
 
-def mplayer(path)
-  system *%W[mplayer -really-quiet #{path}]
+# afplay is part of OSX, and system returns nil rather than raising if the
+# player isn't there at all, which would end the pomodoro in silence
+def play(path)
+  warn "Couldn't play `#{path}'" unless system *%W[afplay #{path}]
 end
 
 def with_volume(volume)
@@ -28,5 +30,5 @@ minutes.times do |i|
   sleep 60
 end
 with_volume(100) do
-  mplayer(path)
+  play(path)
 end
