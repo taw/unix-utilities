@@ -119,6 +119,22 @@ Editor it will use is `$E_EDITOR`, then `$EDITOR`, then TextMate if neither vari
 
 since git and other such tools require waiting flag.
 
+fix_permissions
+---------------
+
+Removes executable flag from files which shouldn't have it.
+Useful for archives that went through a Windows system, zip archive,
+or other system not aware of Unix executable flag.
+
+It doesn't turn +x flag, only removes it if a file neither starts with #!,
+nor is an executable according to `file` utility.
+
+Usage:
+
+    fix_permissions ~/Downloads
+
+If no parameters are passed, it fixes permissions in current directory.
+
 flickr_find
 -----------
 
@@ -139,23 +155,6 @@ Usage example:
 
 which will be saved as `~/Downloads/naughty_cat_by_kevin_dooley_from_flickr_cc-by.jpg`
 
-fix_permissions
----------------
-
-Removes executable flag from files which shouldn't have it.
-Useful for archives that went through a Windows system, zip archive,
-or other system not aware of Unix executable flag.
-
-It doesn't turn +x flag, only removes it if a file neither starts with #!,
-nor is an executable according to `file` utility.
-
-Usage:
-
-    fix_permissions ~/Downloads
-
-If no parameters are passed, it fixes permissions in current directory.
-
-
 git_hash
 --------
 
@@ -166,7 +165,6 @@ Usage example:
 
     git_hash ~/repository
     git_hash # will hash current directory
-
 
 gzip_stream
 -----------
@@ -248,7 +246,6 @@ Usage:
 
     namenorm ~/Downloads/*
 
-
 open_chrome
 -----------
 
@@ -295,16 +292,15 @@ Usage:
     openmany -g *.pdf
     openmany -a 'Google Chrome' -- *.pdf
 
-osx_suspend
------------
-
-Quickly lock out your OSX session.
-
-
 osx_screensaver
 ---------------
 
 Turn on OSX screensaver (will lock out your OSX session depending on your settings)
+
+osx_suspend
+-----------
+
+Quickly lock out your OSX session.
 
 pomodoro
 --------
@@ -322,32 +318,6 @@ See: https://en.wikipedia.org/wiki/Pomodoro_Technique
 
 Setting volume and playing sound assume OSX commands, but I'm sure you'll be able
 to figure out Linux equivalents.
-
-pub
----
-
-Fixes directory tree by making it publicly readable and editable by you.
-
-Very useful when fixing permissions on files you just unpacked from an archive,
-since many archive formats store stupid permissions (like read only on directories) inside,
-which is a bad idea for everything except backups.
-
-Usage:
-
-    pub file.txt
-    pub directory/
-
-
-process_gplus_takeout
----------------------
-
-Converts a directory of Google+ posts taken from Google takeout to a single HTML file,
-sorted by publication date, keeping only original posts and attachments (links, images etc.),
-without comments and other stuff.
-
-Usage:
-
-    process_gplus_takeout Stream/ output.html
 
 progress
 --------
@@ -372,6 +342,20 @@ You can also specify what counts as 100% explicitly:
 
 It will happily go over 100% on display.
 
+pub
+---
+
+Fixes directory tree by making it publicly readable and editable by you.
+
+Very useful when fixing permissions on files you just unpacked from an archive,
+since many archive formats store stupid permissions (like read only on directories) inside,
+which is a bad idea for everything except backups.
+
+Usage:
+
+    pub file.txt
+    pub directory/
+
 rand_passwd
 -----------
 
@@ -389,6 +373,14 @@ Usage:
 
     rand_passwd
 
+randsample
+--------
+
+Randomly samples lines of STDIN. Count is 1 by default.
+
+Usage:
+
+    seq 1 20 | randsample 1
 
 randswap
 --------
@@ -398,15 +390,6 @@ Randomly swaps lines of STDIN.
 Usage:
 
     randswap <urls.txt | head -n 10 >sample.txt
-
-randsample
---------
-
-Randomly samples lines of STDIN. Count is 1 by default.
-
-Usage:
-
-    seq 1 20 | randsample 1
 
 rbexe
 -----
@@ -455,7 +438,6 @@ Usage (either form works):
     rot13 <file.txt
     rot13 file.txt
     cat file.txt | rot13 | rot13 > double_the_security.txt
-
 
 sortby
 ------
