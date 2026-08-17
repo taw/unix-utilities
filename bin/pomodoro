@@ -21,14 +21,27 @@ ensure
   osa("set volume output volume #{old_volume}")
 end
 
-path = "/System/Library/Sounds/Ping.aiff"
-
-minutes = ARGV[0] ? ARGV[0].to_i : 25
-
-minutes.times do |i|
-  puts "Minutes to go: #{minutes-i}"
-  sleep 60
+# Sleeping 60 at a time drifts by however long the rest of the iteration takes,
+# so the pomodoro ran long. Deadlines measured from the start don't accumulate
+# that, and one which already passed just doesn't sleep.
+def sleep_until(time)
+  remaining = time - Time.now
+  sleep remaining if remaining > 0
 end
-with_volume(100) do
-  play(path)
+
+def count_minutes!(minutes, time_start=Time.now)
+  minutes.times do |i|
+    puts "Minutes to go: #{minutes-i}"
+    sleep_until time_start + (i+1)*60
+  end
 end
+
+def pomodoro!(args)
+  path = "/System/Library/Sounds/Ping.aiff"
+  count_minutes!(args[0] ? args[0].to_i : 25)
+  with_volume(100) do
+    play path
+  end
+end
+
+pomodoro!(ARGV) if __FILE__ == $0
