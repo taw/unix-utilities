@@ -57,6 +57,12 @@ class ToUTF8
   end
 
   def call
+    # Just assume no NUL character in input.
+    # 00 41 is most likely UTF16 "A", but it's technically valid "\x00A"
+    # in ASCII or UTF-8 or Latin1 or just about any encoding.
+    # (and same for little endian 41 00)
+    #
+    # Realistically text files don't contain NUL character.
     @data = ARGF.read.b
     if !has_nul_bytes? and valid_ascii?
       # we're done
