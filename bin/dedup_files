@@ -53,19 +53,7 @@ class DedupFiles
     end
   end
 
-  def dedup_1!
-    by_sz_and_bn = {}
-    @files.each do |fn|
-      next unless fn.exist?
-      key = [fn.size, fn.basename.to_s]
-      (by_sz_and_bn[key] ||= []) << fn
-    end
-    by_sz_and_bn.values.each do |fns|
-      dedup_group!(fns) if fns.size > 1
-    end
-  end
-
-  def dedup_2!
+  def dedup_by_size!
     by_sz = {}
     @files.each do |fn|
       next unless fn.exist?
@@ -77,8 +65,7 @@ class DedupFiles
   end
 
   def dedup!
-    dedup_1!
-    dedup_2!
+    dedup_by_size!
     puts "#{@total} bytes in duplicated files" if @total > 0
   end
 end
