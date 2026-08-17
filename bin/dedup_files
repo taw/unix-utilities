@@ -22,7 +22,10 @@ class DedupFiles
       return
     end
     if fn.directory?
-      fn.children.each do |cfn|
+      # Sorted, because children comes back in filesystem order, and which copy
+      # of a duplicate survives is whichever was added first - unsorted, that's
+      # not reproducible between runs or between machines
+      fn.children.sort.each do |cfn|
         add(cfn)
       end
     elsif fn.file?
