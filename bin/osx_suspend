@@ -1,3 +1,10 @@
 #!/usr/bin/env ruby
 
-system "/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession", "-suspend"
+# This used to call CGSession -suspend for fast user switching to the login
+# window, but CGSession only ever shipped inside Menu Extras/User.menu, and Big
+# Sur deleted the menu extras. Nothing replaced it, so sleep the machine, which
+# is what the name says anyway.
+#
+# Whether that locks the session depends on your screen lock grace period -
+# check with `sysadminctl -screenLock status`.
+exit 1 unless system "pmset", "sleepnow"

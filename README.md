@@ -300,7 +300,10 @@ Turn on OSX screensaver (will lock out your OSX session depending on your settin
 osx_suspend
 -----------
 
-Quickly lock out your OSX session.
+Puts the machine to sleep.
+
+Whether that locks your session depends on your screen lock grace period,
+which you can check with `sysadminctl -screenLock status`.
 
 pomodoro
 --------

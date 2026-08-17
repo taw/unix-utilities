@@ -1,3 +1,18 @@
 #!/usr/bin/env ruby
 
-system "open", "/System/Library/Frameworks/ScreenSaver.framework/Versions/A/Resources/ScreenSaverEngine.app"
+# ScreenSaverEngine.app used to be hidden inside ScreenSaver.framework's
+# Resources; on modern OSX it's a normal CoreServices app instead
+paths = [
+  "/System/Library/CoreServices/ScreenSaverEngine.app",
+  "/System/Library/Frameworks/ScreenSaver.framework/Versions/A/Resources/ScreenSaverEngine.app",
+]
+
+path = paths.find{|p| File.exist?(p)}
+
+unless path
+  STDERR.puts "Can't find ScreenSaverEngine.app, looked in:"
+  paths.each{|p| STDERR.puts "  #{p}"}
+  exit 1
+end
+
+exit 1 unless system "open", path
