@@ -3,6 +3,21 @@
 require "pathname"
 require "fileutils"
 
+# The temporary name receives the last path's contents before they end up at
+# the first path, so it belongs next to that last path. In the common case of
+# files within one directory every move is then a same-directory rename,
+# instead of copying the contents through the current directory, which can
+# easily be on a different device.
+def temp_path_for(path)
+  dir = Pathname(path).dirname
+  10.times do
+    tmp = dir + "tmp-#{rand(2**64).to_s(16)}"
+    return tmp unless tmp.exist?
+  end
+  STDERR.puts "Can't find an unused temporary name in #{dir}, swap aborted"
+  exit 1
+end
+
 def swap(*paths)
   paths.each do |path|
     unless Pathname(path).exist?
@@ -11,14 +26,18 @@ def swap(*paths)
     end
   end
 
-  random_path = "tmp-#{rand(2**256).to_s(16)}"
-  if Pathname(random_path).exist?
-    STDERR.puts "#{random_path} exists, swap aborted"
-    exit 1
-  end
+  tmp = temp_path_for(paths.last)
 
-  [random_path, *paths, random_path].each_cons(2).reverse_each do |a,b|
-    FileUtils.mv a, b
+  [tmp, *paths, tmp].each_cons(2).reverse_each do |a, b|
+    begin
+      FileUtils.mv a, b
+    rescue StandardError
+      # A failure halfway through leaves one of the files under the temporary
+      # name, so say which one it is instead of letting it look like data loss
+      STDERR.puts "Can't move #{a} to #{b}: #{$!}"
+      STDERR.puts "Swap incomplete, #{paths.last} is now #{tmp}" if tmp.exist?
+      exit 1
+    end
   end
 end
 
