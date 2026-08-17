@@ -22,24 +22,19 @@ ARGV.each do |d|
   next if cn.size <= max_size * 1.25 # avoid tiny chunks
   # puts "Splitting #{d} - #{cn.size} files"
   slices = cn.sort.balanced_slices(max_size)
-  slices.each_with_index do |fs, i|
-    dn = d.sub(/\/?\Z/, "-%0#{slices.size.to_s.size}d" % (i+1))
-    if dn.exist?
-      unless dn.directory? and dn.children.size == 0
-        puts "#{dn} already exists and is not an empty directory, skipping"
-        next
-      end
-    else
-      dn.mkdir
-    end
+  fmt = "-%0#{slices.size.to_s.size}d"
+  n = 0
+  slices.each do |fs|
+    # A name can be taken by an earlier split or something unrelated, so count
+    # up to the next free one instead of dropping the slice
+    n += 1
+    n += 1 while d.sub(/\/?\Z/, fmt % n).exist?
+    dn = d.sub(/\/?\Z/, fmt % n)
+    dn.mkdir
     fs.each do |f|
-      nf = dn + f.basename
-      if nf.exist?
-        puts "#{nf} already exists, skipping"
-        next
-      end
-      f.rename(nf)
+      f.rename(dn + f.basename)
     end
   end
-  d.rmdir
+  # Only if everything actually moved out
+  d.rmdir if d.children.empty?
 end
