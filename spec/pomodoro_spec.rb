@@ -37,6 +37,16 @@ describe "pomodoro" do
   describe "pomodoro!" do
     before { allow(self).to receive(:with_volume) }
 
+    # pomodoro! calls check_commands! in this very process, so without the mocks
+    # on PATH it would exit rspec itself on any system without osascript/afplay
+    around do |example|
+      MockUnix.new do |env|
+        env.mock_command "osascript"
+        env.mock_command "afplay"
+        example.run
+      end
+    end
+
     it "counts the minutes given as the first argument" do
       expect(self).to receive(:count_minutes!).with(5)
       pomodoro! ["5"]
