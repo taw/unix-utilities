@@ -5,17 +5,21 @@ class File
     # chmod and directory? both follow symlinks, so following one would change
     # permissions of files outside the tree we were asked to fix
     return if symlink?(fn)
+
     unless exist?(fn)
       warn "File #{fn} doesn't exist"
       return
     end
-    chmod(executable?(fn) ? 0o755 : 0o644, fn)
+
     if directory?(fn)
+      chmod(0o755, fn)
       Dir.open(fn) do |dh|
         dh.each do |sfn|
           pub(fn + "/" + sfn) unless sfn == "." or sfn == ".."
         end
       end
+    else
+      chmod(executable?(fn) ? 0o755 : 0o644, fn)
     end
   end
 end

@@ -37,6 +37,18 @@ describe "pub" do
     end
   end
 
+  it "fixes directories which aren't traversable" do
+    MockUnix.new do |env|
+      (env.path+"dir").mkpath
+      (env.path+"dir/data.txt").write("")
+      (env.path+"dir/data.txt").chmod(0600)
+      (env.path+"dir").chmod(0600)
+      system binary.to_s, "dir"
+      expect(mode("dir")).to eq("755")
+      expect(mode("dir/data.txt")).to eq("644")
+    end
+  end
+
   it "doesn't follow symlinks out of the directory tree" do
     MockUnix.new do |env|
       (env.path+"outside").mkpath
