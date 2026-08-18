@@ -567,7 +567,7 @@ Usage:
 
     unall *.zip *.rar *.7z *.tar.bz2 *.tar.gz
 
-`unall` assumes you have `7zz` (from brew `sevenzip` package) and a sane version of `tar` installed.
+`unall` assumes you have `7zz` (from brew `sevenzip` package) and a sane version of `tar` installed. Unpacking `.tar.zst` archives additionally needs `zstd`, as neither tar links it in.
 
 volume
 ------

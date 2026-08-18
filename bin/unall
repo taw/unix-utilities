@@ -16,14 +16,31 @@ def check_commands!(*cmds)
 end
 
 class UnarchiveFile
+  # Extensions are matched as suffixes, in order, so every .tar.<compression>
+  # has to come before the bare compression extension
   Formats = {
     :rar  => %w[.rar .cbr],
-    :"7z" => %w[.7z .zip .cbz .jar .civ5mod],
-    :tgz  => %w[.tgz .tar.gz .gem],
+    # Most of these are zip with another name on it. `file` is no help for
+    # them - a .epub reports application/epub+zip, so the mime fallback for
+    # unknown extensions never sees it.
+    :"7z" => %w[
+      .7z .cb7
+      .zip .zipx .cbz
+      .jar .war .ear .aar
+      .apk .aab .ipa .xpi .crx .appx .msix
+      .whl .egg .nupkg .vsix
+      .epub .docx .xlsx .pptx .odt .ods .odp
+      .civ5mod
+      .deb .udeb .rpm .msi .cab .dmg .iso .pkg .xip
+      .cpio .lzh .lha .arj .wim
+    ],
+    :tgz  => %w[.tgz .tar.gz],
     :tbz2 => %w[.tbz2 .tar.bz2],
-    :tar  => %w[.tar],
+    :tzst => %w[.tzst .tar.zst],
+    # .tar.Z needs no flags of its own, both tars autodetect it
+    :tar  => %w[.tar .gem .taz .tar.z],
     :txz  => %w[.tar.xz],
-    :single_file => %w[.gz .bz2 .xz],
+    :single_file => %w[.gz .bz2 .xz .zst .z],
   }
 
   # OSX has multiple 7zip packages - `sevenzip` provides `7zz`, `p7zip` provides `7z`.
@@ -41,6 +58,13 @@ class UnarchiveFile
   def tar
     check_commands! "tar"
     "tar"
+  end
+
+  # tar shells out to zstd, in libarchive as well as in GNU tar, and a missing
+  # binary would show up as an empty listing rather than as an error
+  def tar_zstd
+    check_commands! "zstd"
+    tar
   end
 
   def formats
@@ -123,6 +147,10 @@ class UnarchiveFile
     `#{tar} -tjf #{@path.shellescape}`.split("\n")
   end
 
+  def files_tzst
+    `#{tar_zstd} -tf #{@path.shellescape}`.split("\n")
+  end
+
   def files_tar
     `#{tar} -tf #{@path.shellescape}`.split("\n")
   end
@@ -149,6 +177,10 @@ class UnarchiveFile
 
   def unpack_tbz2
     system tar, "-xjf", @path
+  end
+
+  def unpack_tzst
+    system tar_zstd, "-xf", @path
   end
 
   def unpack_txz

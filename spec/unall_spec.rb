@@ -60,6 +60,59 @@ describe "unall" do
     end
   end
 
+  # .gem files are uncompressed tars, not gzipped ones. bsdtar ignores the
+  # difference, GNU tar does not, so the flags have to be right
+  it "unzips archives in gem format" do
+    MockUnix.new do |env|
+      create_archive do
+        system "tar cf foo.gem a.txt b.txt"
+      end
+      unpacks_and_deletes_archive binary, "foo.gem"
+    end
+  end
+
+  # These are all zip with a different extension on it. `file` reports most of
+  # them as their own mime type, not application/zip, so the fallback for
+  # unknown extensions doesn't cover them
+  %W[epub docx apk whl cbz].each do |format|
+    it "unzips zip archives named .#{format}" do
+      MockUnix.new do |env|
+        create_archive do
+          system "#{SevenZip} a foo.zip a.txt b.txt >/dev/null"
+          system "mv foo.zip foo.#{format}"
+        end
+        unpacks_and_deletes_archive binary, "foo.#{format}"
+      end
+    end
+  end
+
+  it "unzips archives in cpio format" do
+    MockUnix.new do |env|
+      create_archive do
+        system "printf 'a.txt\\nb.txt\\n' | cpio -o >foo.cpio 2>/dev/null"
+      end
+      unpacks_and_deletes_archive binary, "foo.cpio"
+    end
+  end
+
+  it "unzips archives in tar.zst format", skip: !have_command?("zstd") do
+    MockUnix.new do |env|
+      create_archive do
+        system "tar c a.txt b.txt | zstd -q >foo.tar.zst"
+      end
+      unpacks_and_deletes_archive binary, "foo.tar.zst"
+    end
+  end
+
+  it "unzips archives in tar.Z format", skip: !have_command?("compress") do
+    MockUnix.new do |env|
+      create_archive do
+        system "tar c a.txt b.txt | compress >foo.tar.Z"
+      end
+      unpacks_and_deletes_archive binary, "foo.tar.Z"
+    end
+  end
+
   def reports_empty_archive(binary, name)
     output = `"#{binary}" "#{name}" 2>&1`
     expect($?.success?).to eq(true)
