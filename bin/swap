@@ -20,7 +20,8 @@ end
 
 def swap(*paths)
   paths.each do |path|
-    unless Pathname(path).exist?
+    # exist? follows symlinks, and a broken one still moves just fine
+    unless Pathname(path).exist? or Pathname(path).symlink?
       STDERR.puts "#{path} does not exist, swap aborted"
       exit 1
     end
