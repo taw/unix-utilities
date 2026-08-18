@@ -30,7 +30,10 @@ if ARGV[0] =~ /\A--?(.*)/
   type = $1
 end
 
-bin = types[type] or raise "No such type: #{type}"
+unless bin = types[type]
+  warn "No such type: #{type}"
+  exit 1
+end
 
 check_commands! "chmod" unless ARGV.empty?
 

@@ -17,6 +17,8 @@ end
 def travel_time(from, to)
   uri = tfl_uri(from, to)
   data = JSON.parse(URI.open(uri).read)
+  # 200 response always comes in correct format
+  # every error case gets its own http code, even exotic ones like 300
   data["journeys"].map{|j| j["duration"]}.min
 end
 
