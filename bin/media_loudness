@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby
+
+require "shellwords"
+require "open3"
+
+USAGE = <<~USAGE
+  Usage: #{File.basename($0)} FILE [FILE ...]
+
+  Measures integrated loudness (LUFS) of one or more audio/video files
+  using ffmpeg's loudnorm filter.
+
+  Examples:
+    #{File.basename($0)} chapter01.mp3
+    #{File.basename($0)} *.m4b
+USAGE
+
+class MediaLoudness
+  class FfmpegNotFound < StandardError; end
+
+  def initialize(path)
+    @path = path
+  end
+
+  # Returns the LUFS value as a Float, or nil if it couldn't be determined.
+  # Raises FfmpegNotFound if ffmpeg itself isn't runnable.
+  def media_loudness
+    unless File.exist?(@path)
+      raise Errno::ENOENT, @path
+    end
+
+    cmd = "ffmpeg -hide_banner -i #{@path.shellescape} -af loudnorm=print_format=summary -f null - 2>&1"
+    output, status = Open3.capture2e(cmd)
+
+    if status.nil? || (status.respond_to?(:exitstatus) && status.exitstatus.nil?)
+      raise FfmpegNotFound, "could not execute ffmpeg"
+    end
+
+    match = output[/^Input Integrated:\s*(-?\d+\.\d+) LUFS$/, 1]
+    match && match.to_f
+  rescue Errno::ENOENT => e
+    # Distinguish "ffmpeg missing" from "input file missing" by checking
+    # which one is actually absent.
+    if e.message.include?(@path)
+      raise
+    else
+      raise FfmpegNotFound, "ffmpeg not found on PATH"
+    end
+  end
+
+  def call
+    result = media_loudness
+    if result
+      puts "#{@path}: #{result} LUFS"
+    else
+      warn "#{@path}: could not parse loudness (ffmpeg ran but no match found)"
+      puts "#{@path}: N/A"
+    end
+  rescue Errno::ENOENT
+    warn "#{@path}: file not found, skipping"
+    puts "#{@path}: N/A"
+  rescue FfmpegNotFound => e
+    warn "ffmpeg error: #{e.message}"
+    warn "Install ffmpeg and make sure it's on your PATH, then try again."
+    exit 1
+  rescue StandardError => e
+    # Catch-all so one bad file doesn't kill a long batch run.
+    warn "#{@path}: unexpected error (#{e.class}: #{e.message}), skipping"
+    puts "#{@path}: N/A"
+  end
+end
+
+if ARGV.empty? || %w[-h --help].include?(ARGV.first)
+  puts USAGE
+  exit(ARGV.empty? ? 1 : 0)
+end
+
+ARGV.each do |path|
+  MediaLoudness.new(path).call
+end
