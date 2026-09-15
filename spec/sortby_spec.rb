@@ -26,4 +26,11 @@ describe "sortby" do
       )
     end
   end
+
+  it "sortby on empty input" do
+    IO.popen("#{binary} '$_.to_i'", "r+") do |fh|
+      fh.close_write
+      expect(fh.read).to eq("")
+    end
+  end
 end
