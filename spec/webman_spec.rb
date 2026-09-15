@@ -75,6 +75,32 @@ describe "webman" do
     end
   end
 
+  it "escapes shell metacharacters in the page name" do
+    MockUnix.new do |env|
+      Pathname("fakepage.1").write("fake man page content")
+      env.mock_command "man", stdout: (env.path+"fakepage.1").to_s
+      env.mock_command "groff", stdout: "<html>fake man html</html>"
+      env.mock_command "open"
+
+      _, err, status = webman("foo(1)", home: env.path+"home")
+      expect(err).to eq("")
+      expect(status).to be_success
+      expect(env.command_trace("man")).to eq([["-w", "foo(1)"]])
+    end
+  end
+
+  it "does not let the page name inject shell commands" do
+    MockUnix.new do |env|
+      env.mock_command "man"
+      env.mock_command "open"
+      marker = env.path+"injected"
+
+      webman("foo; touch #{marker}", home: env.path+"home")
+
+      expect(marker).to_not exist
+    end
+  end
+
   it "fails when asked for the terminal page of a command with no man page" do
     MockUnix.new do |env|
       env.mock_command "man"

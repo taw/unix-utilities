@@ -60,7 +60,7 @@ class ManPage
     "Manual page for #{cmd*' '}"
   end
   def man_path
-    @man_path ||= `man -w #{cmd*' '} 2>/dev/null`.chomp
+    @man_path ||= `man -w #{cmd.shelljoin} 2>/dev/null`.chomp
   end
   def ensure_fetched
     unless cache_path.nonempty_file?
