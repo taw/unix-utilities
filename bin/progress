@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+STDOUT.sync = true
 STDERR.sync = true
 
 $bytes = true
@@ -20,17 +21,21 @@ until ARGV.empty?
   end
 end
 
+def print_progress
+  if $max and $max > 0
+    STDERR.print "\r#{$count}/#{$max} [#{$count*100/$max}%]"
+  else
+    STDERR.print "\r#{$count}"
+  end
+end
+
 $max = STDIN.stat.size if $bytes and STDIN.stat.file? and $max.nil?
 
-Thread.new do
+progress = Thread.new do
   last_count = nil
-  while true
+  loop do
     if $count != last_count
-      if $max and $max > 0
-        STDERR.print "\r#{$count}/#{$max} [#{$count*100/$max}%]"
-      else
-        STDERR.print "\r#{$count}"
-      end
+      print_progress
       last_count = $count
     end
     sleep 1
@@ -44,4 +49,7 @@ begin
   end
   STDERR.print "\n"
 rescue Errno::EPIPE
+ensure
+  progress.kill
+  print_progress
 end
