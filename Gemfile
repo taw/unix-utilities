@@ -9,3 +9,4 @@ gem "nokogiri"
 gem "sqlite3"
 gem "vcr"
 gem "webmock"
+gem "pstore" # no longer part of the stdlib since ruby 4.0
