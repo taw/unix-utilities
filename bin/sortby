@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
 code = ARGV[0]
+unless code
+  STDERR.puts "Usage: #{$0} <ruby expression using $_>"
+  exit 1
+end
 lines = STDIN.readlines.sort_by{|x| $_=x; eval(code) }
 puts(lines) unless lines.empty?

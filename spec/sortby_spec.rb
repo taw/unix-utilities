@@ -33,4 +33,9 @@ describe "sortby" do
       expect(fh.read).to eq("")
     end
   end
+
+  it "prints usage and fails when called without arguments" do
+    expect(`echo | #{binary} 2>&1`).to include("Usage:")
+    expect($?.exitstatus).to eq(1)
+  end
 end
