@@ -86,11 +86,15 @@ describe "unall" do
     end
   end
 
+  # 7zip can unpack cpio but not create it, and `cpio` itself is missing on
+  # many systems, so this one comes from a fixture. To recreate it, in an
+  # empty directory:
+  #   printf hello >a.txt; printf world >b.txt
+  #   printf 'a.txt\nb.txt\n' | cpio -o --format=newc >foo.cpio
+  # then copy foo.cpio to spec/unall/
   it "unzips archives in cpio format" do
     MockUnix.new do |env|
-      create_archive do
-        system "printf 'a.txt\\nb.txt\\n' | cpio -o >foo.cpio 2>/dev/null"
-      end
+      FileUtils.cp Pathname(__dir__)+"unall/foo.cpio", "foo.cpio"
       unpacks_and_deletes_archive binary, "foo.cpio"
     end
   end
