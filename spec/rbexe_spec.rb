@@ -50,6 +50,16 @@ describe "rbexe" do
     it_behaves_like "rbexe"
   end
 
+  it "makes existing files executable, respecting umask" do
+    MockUnix.new do |env|
+      file.write("hello\n")
+      file.chmod(0640)
+      system "umask 027 && #{binary} #{file} 2>/dev/null"
+      expect(file.stat.mode & 0777).to eq(0750)
+      expect(content).to eq("hello\n")
+    end
+  end
+
   context "bash" do
     let(:arguments) { %W[--sh] }
     let(:interpretter) { "/bin/bash" }

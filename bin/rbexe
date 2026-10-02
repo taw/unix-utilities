@@ -2,13 +2,6 @@
 
 require "fileutils"
 
-def check_commands!(*cmds)
-  missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
-  return if missing.empty?
-  STDERR.puts "#{$0} requires #{missing.join(", ")}, not found in PATH"
-  exit 1
-end
-
 types = {
   "ruby"       => "#!/usr/bin/env ruby",
   "python"     => "#!/usr/bin/env python",
@@ -35,12 +28,11 @@ unless bin = types[type]
   exit 1
 end
 
-check_commands! "chmod" unless ARGV.empty?
-
 ARGV.each do |file_name|
   if File.exist?(file_name)
     warn "Already exists, chmodding only: #{file_name}"
-    system "chmod", "+x", file_name
+    # Same as chmod +x, which leaves alone bits masked out by umask
+    File.chmod(File.stat(file_name).mode | (0111 & ~File.umask), file_name)
   else
     File.open(file_name, IO::WRONLY|IO::CREAT|IO::EXCL, 0755) do |fh|
       fh.puts bin
