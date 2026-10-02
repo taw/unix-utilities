@@ -1,3 +1,4 @@
+require "zlib"
 require "digest"
 
 describe "webman" do
@@ -72,6 +73,41 @@ describe "webman" do
         ["-w", "ls", "foo"],
         [cache_path.to_s],
       ])
+    end
+  end
+
+  it "caches the man page" do
+    MockUnix.new do |env|
+      Pathname("fakepage.1").write("fake man page content")
+      env.mock_command "man", stdout: (env.path+"fakepage.1").to_s
+
+      _, _, status = webman("-T", "ls", home: env.path+"home")
+      expect(status).to be_success
+      cache_path = env.path+"home/.man_cache/#{cache_key(["ls"])}"
+      expect(cache_path.read).to eq("fake man page content")
+    end
+  end
+
+  it "decompresses gzipped man pages" do
+    MockUnix.new do |env|
+      Zlib::GzipWriter.open("fakepage.1.gz"){|gz| gz.write("fake man page content")}
+      env.mock_command "man", stdout: (env.path+"fakepage.1.gz").to_s
+
+      _, _, status = webman("-T", "ls", home: env.path+"home")
+      expect(status).to be_success
+      cache_path = env.path+"home/.man_cache/#{cache_key(["ls"])}"
+      expect(cache_path.read).to eq("fake man page content")
+    end
+  end
+
+  it "fails on a corrupted gzipped man page" do
+    MockUnix.new do |env|
+      Pathname("fakepage.1.gz").write("not really gzip")
+      env.mock_command "man", stdout: (env.path+"fakepage.1.gz").to_s
+
+      _, err, status = webman("-T", "ls", home: env.path+"home")
+      expect(status).not_to be_success
+      expect(err).to include("Failed to fetch ls")
     end
   end
 

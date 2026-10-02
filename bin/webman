@@ -6,6 +6,7 @@ require "timeout"
 require "uri"
 require "fileutils"
 require "shellwords"
+require "zlib"
 
 def check_commands!(*cmds)
   missing = cmds.reject{|cmd| ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}}
@@ -65,10 +66,18 @@ class ManPage
   def ensure_fetched
     unless cache_path.nonempty_file?
       raise "File doesn't exist" unless File.exist?(man_path)
-      if man_path =~ /\.(Z|gz)\z/i
+      case man_path
+      when /\.gz\z/i
+        begin
+          cache_path.write(Zlib::GzipReader.open(man_path, &:read))
+        rescue Zlib::Error
+          # Reported as a failed fetch just below
+        end
+      when /\.z\z/i
+        # Old compress and pack formats, which zlib can't read
         system "zcat <#{man_path.shellescape} >#{cache_path.shellescape}"
       else
-        system "cat <#{man_path.shellescape} >#{cache_path.shellescape}"
+        FileUtils.cp man_path, cache_path
       end
     end
     raise "Failed to fetch #{cmd*' '} to #{cache_path}" unless cache_path.nonempty_file?
@@ -111,7 +120,7 @@ if ARGV[0] =~ /\A-/
 end
 
 # groff and zcat are not checked on purpose - a failed rendering already falls
-# back to opening the search in a browser, and zcat is only for compressed pages
+# back to opening the search in a browser, and zcat is only for .Z pages
 if browser
   check_commands! "man", "open"
   ManPage.new(ARGV).display_browser
