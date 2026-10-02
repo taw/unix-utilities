@@ -28,12 +28,13 @@ class MockUnix
     end
   end
 
-  def mock_command(name, exit_status: 0, stdout: nil)
+  def mock_command(name, exit_status: 0, stdout: nil, script: nil)
     cmd_path = @bin_path+name
     cmd_path.open("w", 0755) do |fh|
       fh.puts "#!/usr/bin/env ruby"
       fh.puts "open(#{ command_trace_path(name).to_s.inspect }, 'a'){|fh| fh.puts ARGV.inspect}"
       fh.puts "print #{stdout.inspect}" if stdout
+      fh.puts script if script
       fh.puts "exit #{exit_status}"
     end
   end

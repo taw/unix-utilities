@@ -452,7 +452,7 @@ speedup_mp3
 Convert MP3 podcasts/audiobooks to faster playback (or slower if you wish).
 Useful if your device (like default music playing apps on most phones) doesn't support playback speed change.
 
-Requires sox and id3v2 programs.
+Requires sox program, and ffmpeg for formats other than mp3 and wav.
 
 Usage:
 

@@ -7,6 +7,20 @@ load Pathname(__dir__)+"../bin/media_size"
 ENV["HOME"] = saved_home
 
 describe "media_size" do
+  describe MediaFile do
+    it "measures mp3 duration" do
+      file = MediaFile.new(Pathname(__dir__)+"speedup_mp3/tagged.mp3")
+      expect(file.compute_duration).to be_within(0.01).of(2.232)
+    end
+
+    it "reports broken mp3 as zero" do
+      MockUnix.new do
+        Pathname("broken.mp3").write("not really an mp3")
+        expect(MediaFile.new("broken.mp3").compute_duration).to eq(0)
+      end
+    end
+  end
+
   describe MediaDirectory do
     let(:dir) { MediaDirectory.new("media") }
 
