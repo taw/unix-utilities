@@ -8,6 +8,22 @@ require "open3"
 require "json"
 require "sqlite3"
 
+# Available both in describe blocks (for skip: options) and inside examples
+module SpecHelpers
+  def osx?
+    RbConfig::CONFIG["host_os"] =~ /darwin/i
+  end
+
+  def have_command?(cmd)
+    ENV["PATH"].split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}
+  end
+end
+
+RSpec.configure do |config|
+  config.extend SpecHelpers
+  config.include SpecHelpers
+end
+
 class MockUnix
   attr_reader :path
   def initialize

@@ -1,10 +1,6 @@
 describe "osx_screensaver" do
   let(:binary) { Pathname(__dir__)+"../bin/osx_screensaver" }
 
-  def osx?
-    RbConfig::CONFIG["host_os"] =~ /darwin/i
-  end
-
   it "opens ScreenSaverEngine.app" do
     skip unless osx?
 

@@ -1,10 +1,6 @@
 describe "unall" do
   let(:binary) { Pathname(__dir__)+"../bin/unall" }
 
-  def self.have_command?(cmd)
-    ENV["PATH"].split(File::PATH_SEPARATOR).any?{|dir| File.executable?(File.join(dir, cmd))}
-  end
-
   SevenZip = %w[7zz 7z].find{|cmd| have_command?(cmd)}
 
   def create_archive
